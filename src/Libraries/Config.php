@@ -1,7 +1,7 @@
 <?php
 namespace Daycry\Maintenance\Libraries;
 
-class IpUtils
+class Config
 {
     /**
      * Checks if an IPv4 or IPv6 address is contained in the list of given IPs or subnets.
