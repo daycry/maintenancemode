@@ -3,7 +3,7 @@ namespace Daycry\Maintenance\Config;
 
 use CodeIgniter\Config\BaseConfig;
 
-class MaintenanceMode extends BaseConfig
+class Maintenance extends BaseConfig
 {
 
     //--------------------------------------------------------------------
