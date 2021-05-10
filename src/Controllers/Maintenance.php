@@ -6,7 +6,7 @@ use Config\Services;
 use Daycry\Maintenance\Libraries\IpUtils;
 use Daycry\Maintenance\Exceptions\ServiceUnavailableException;
 
-class MaintenanceMode extends Controller
+class Maintenance extends Controller
 {
     private $config;
 
