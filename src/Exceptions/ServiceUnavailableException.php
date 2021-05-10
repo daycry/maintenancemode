@@ -10,8 +10,8 @@ class ServiceUnavailableException extends \RuntimeException implements Exception
 	 */
 	protected $code = 503;
 
-	public static function forServerDow(string $message = null)
+	public static function forServerDow( string $message = null )
 	{
-		return new static($message ?? false);
+		return new static( $message ?? false );
 	}
 }
