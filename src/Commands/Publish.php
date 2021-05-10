@@ -27,19 +27,19 @@ class Publish extends BaseCommand
         $this->determineSourcePath();
 
         // Views
-        if (CLI::prompt('Publish Views?', ['y', 'n']) == 'y')
+        if( CLI::prompt( 'Publish Views?', [ 'y', 'n' ] ) == 'y' )
         {
             $map = false;
-            $map = directory_map($this->sourcePath . '/Views/errors/cli');
-            $this->publishViews($map, 'errors/cli/');
+            $map = directory_map( $this->sourcePath . '/Views/errors/cli' );
+            $this->publishViews( $map, 'errors/cli/' );
 
             $map = false;
-            $map = directory_map($this->sourcePath . '/Views/errors/html');
-            $this->publishViews($map, 'errors/html/');
+            $map = directory_map( $this->sourcePath . '/Views/errors/html' );
+            $this->publishViews( $map, 'errors/html/' );
         }
 
         // Config
-        if (CLI::prompt('Publish Config file?', ['y', 'n']) == 'y')
+        if( CLI::prompt('Publish Config file?', [ 'y', 'n' ]) == 'y' )
         {
             $this->publishConfig();
         }
@@ -50,16 +50,16 @@ class Publish extends BaseCommand
         
         $prefix = '';
 
-        foreach ($map as $key => $view)
+        foreach( $map as $key => $view )
         {
-            if (is_array($view))
+            if( is_array( $view ) )
             {
                 $oldPrefix = $prefix;
                 $prefix .= $key;
 
-                foreach ($view as $file)
+                foreach( $view as $file )
                 {
-                    $this->publishView($file, $prefix, $subfolder);
+                    $this->publishView( $file, $prefix, $subfolder );
                 }
 
                 $prefix = $oldPrefix;
@@ -67,29 +67,29 @@ class Publish extends BaseCommand
                 continue;
             }
 
-            $this->publishView($view, $prefix, $subfolder);
+            $this->publishView( $view, $prefix, $subfolder );
         }
     }
 
-    protected function publishView($view, string $prefix = '', string $subfolder = '')
+    protected function publishView( $view, string $prefix = '', string $subfolder = '' )
     {
         $path = "{$this->sourcePath}/Views/{$subfolder}{$prefix}{$view}";
-		$namespace = defined('APP_NAMESPACE') ? APP_NAMESPACE : 'App';
+		$namespace = defined( 'APP_NAMESPACE' ) ? APP_NAMESPACE : 'App';
 
-        $content = file_get_contents($path);
+        $content = file_get_contents( $path );
 
-        $this->writeFile("Views/{$subfolder}{$prefix}{$view}", $content);
+        $this->writeFile( "Views/{$subfolder}{$prefix}{$view}", $content );
     }
 
     protected function publishConfig()
     {
-        $path = "{$this->sourcePath}/Config/MaintenanceMode.php";
+        $path = "{$this->sourcePath}/Config/Maintenance.php";
 
         $content = file_get_contents($path);
-        $appNamespace = APP_NAMESPACE;
-        $content = str_replace('namespace CodeigniterExt\MaintenanceMode\Config', "namespace {$appNamespace}\Config", $content);
+        $content = str_replace( 'namespace Daycry\Maintenance\Config', "namespace Config", $content );
+        $content = str_replace( 'extends BaseConfig', "extends \Daycry\Maintenance\Config\Maintenance", $content );
 
-        $this->writeFile("Config/MaintenanceMode.php", $content);
+        $this->writeFile( "Config/Maintenance.php", $content );
     }
 
     /**
@@ -99,9 +99,9 @@ class Publish extends BaseCommand
     {
         $this->sourcePath = realpath(__DIR__ . '/../');
 
-        if ($this->sourcePath == '/' || empty($this->sourcePath))
+        if( $this->sourcePath == '/' || empty( $this->sourcePath ) )
         {
-            CLI::error('Unable to determine the correct source directory. Bailing.');
+            CLI::error( 'Unable to determine the correct source directory. Bailing.' );
             exit();
         }
     }
@@ -113,30 +113,30 @@ class Publish extends BaseCommand
      * @param string $path
      * @param string $content
      */
-    protected function writeFile(string $path, string $content)
+    protected function writeFile( string $path, string $content )
     {
         $config = new Autoload();
-        $appPath = $config->psr4[APP_NAMESPACE];
+        $appPath = $config->psr4[ APP_NAMESPACE ];
 
-        $directory = dirname($appPath . $path);
+        $directory = dirname( $appPath . $path );
 
-        if (! is_dir($directory))
+        if( !is_dir($directory ) )
         {
-            mkdir($directory);
+            mkdir( $directory );
         }
 
         try
         {
-            write_file($appPath . $path, $content);
+            write_file( $appPath . $path, $content );
         }
-        catch (\Exception $e)
+        catch( \Exception $e )
         {
-            $this->showError($e);
+            $this->showError( $e );
             exit();
         }
 
-        $path = str_replace($appPath, '', $path);
+        $path = str_replace( $appPath, '', $path );
 
-        CLI::write(CLI::color('  created: ', 'green') . $path);
+        CLI::write( CLI::color( '  created: ', 'green' ) . $path );
     }
 }
