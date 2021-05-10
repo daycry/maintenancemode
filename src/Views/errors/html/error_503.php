@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8">
-	<title><?= lang('MaintenanceMode.serverDowTitle'); ?></title>
+	<title><?= lang('Maintenance.serverDowTitle'); ?></title>
 
 	<style>
 	div.logo {
@@ -70,9 +70,9 @@
 </head>
 <body>
 	<div class="wrap">
-		<h1><?= lang('MaintenanceMode.serverDowTitle'); ?></h1>
+		<h1><?= lang('Maintenance.serverDowTitle'); ?></h1>
 
-		<p><?= lang('MaintenanceMode.serverDowMessage'); ?></p>
+		<p><?= lang('Maintenance.serverDowMessage'); ?></p>
 		<p>
 			<?php if (! empty($message) && $message !== '(null)') : ?>
 				<?= esc($message) ?>
