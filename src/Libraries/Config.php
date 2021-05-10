@@ -17,7 +17,7 @@ class Config
 
         if( empty( $config ) )
         {    
-            $config=new \Daycry\Maintenance\Config\Maintenance();
+            $config = new \Daycry\Maintenance\Config\Maintenance();
         }
 
         return $config;

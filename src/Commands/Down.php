@@ -15,7 +15,7 @@ class Down extends BaseCommand
 
 	public function run( array $params )
 	{
-		$config = \Daycry\Libraries\Config::getConfig();
+		$config = \Daycry\Maintenance\Libraries\Config::getConfig();
 
 		if( !file_exists( $config->FilePath . $config->FileName ) )
         {	

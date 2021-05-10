@@ -15,7 +15,7 @@ class Up extends BaseCommand
 
 	public function run( array $params )
 	{
-		$config = \Daycry\Libraries\Config::getConfig();
+		$config = \Daycry\Maintenance\Libraries\Config::getConfig();
 
 		//delete the file with json content
 		@unlink( $config->FilePath . $config->FileName );
