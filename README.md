@@ -34,7 +34,7 @@ Then you can adjust it to your needs. By default file will be present in `app/Co
 Create new event in **app/Config/Events.php**
 
 ```php
-Events::on( 'post_controller_constructor', 'Daycry\Maintenance\Controllers\Maintenance::check' );
+Events::on( 'pre_system', 'Daycry\Maintenance\Controllers\Maintenance::check' );
 ```
 
 
