@@ -1,0 +1,26 @@
+{
+    "name": "daycry/maintenancemode",
+    "description": "Maintenance mode for Codeigniter 4",
+    "keywords":
+    [
+        "maintenance"
+    ],
+    "homepage": "https://github.com/daycry/maintenancemode",
+    "authors":
+    [
+        {
+            "name": "daycry",
+            "homepage": "https://github.com/daycry",
+            "role": "Developer"
+        }
+    ],
+    "license": "MIT",
+    "require": {
+      "php": ">=7.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "Daycry\\Maintenance\\": "src/"
+        }
+    }
+}
