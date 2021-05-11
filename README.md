@@ -45,3 +45,12 @@ php spark mm:down
 php spark mm:status
 php spark mm:up
 ```
+
+## How Run Tests
+
+```php
+cd vendor\daycry\maintenancemode\
+composer install
+vendor\bin\phpunit
+
+```

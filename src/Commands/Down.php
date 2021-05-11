@@ -9,9 +9,9 @@ class Down extends BaseCommand
 	protected $group        = 'Maintenance Mode';
 	protected $name         = 'mm:down';
 	protected $description  = 'Put the application into maintenance mode';
-	protected $usage        = 'mm:down';
+	protected $usage        = 'mm:down [Options]';
 	protected $arguments    = [];
-	protected $options 		= [];
+	protected $options 		= [ '-message' => 'Set Message', '-ip' => 'Allowed ips [example: 0.0.0.0 127.0.0.1]' ];
 
 	public function run( array $params )
 	{
@@ -19,8 +19,19 @@ class Down extends BaseCommand
 
 		if( !file_exists( $config->FilePath . $config->FileName ) )
         {	
-			$message = CLI::prompt( "Message" );
-			$ips_str = CLI::prompt( "Allowed ips [example: 0.0.0.0 127.0.0.1]" );
+			$message = $params[ 'message' ] ?? CLI::getOption( 'message' );
+
+            if( empty( $message ) )
+            {
+                $message = CLI::prompt( "Message" );
+            }
+
+			$ips_str = $params[ 'ip' ] ?? CLI::getOption( 'ip' );
+
+            if( empty( $ips_str ) )
+            {
+                $ips_str = CLI::prompt( "Allowed ips [example: 0.0.0.0 127.0.0.1]" );
+            }
 
 			$ips_array = explode( " ", $ips_str );
 

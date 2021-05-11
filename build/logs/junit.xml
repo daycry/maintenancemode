@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="Maintenance" tests="3" assertions="5" errors="0" warnings="0" failures="0" skipped="0" time="0.086821">
+    <testsuite name="Daycry\Maintenance\MaintenanceTest" file="C:\Users\46066917X\Documents\GitHub\maintenancemode\tests\Maintenance\MaintenanceTest.php" tests="3" assertions="5" errors="0" warnings="0" failures="0" skipped="0" time="0.086821">
+      <testcase name="testInMaintenance" class="Daycry\Maintenance\MaintenanceTest" classname="Daycry.Maintenance.MaintenanceTest" file="C:\Users\46066917X\Documents\GitHub\maintenancemode\tests\Maintenance\MaintenanceTest.php" line="15" assertions="1" time="0.081179"/>
+      <testcase name="testCheckStatus" class="Daycry\Maintenance\MaintenanceTest" classname="Daycry.Maintenance.MaintenanceTest" file="C:\Users\46066917X\Documents\GitHub\maintenancemode\tests\Maintenance\MaintenanceTest.php" line="27" assertions="3" time="0.003601"/>
+      <testcase name="testOutMaintenance" class="Daycry\Maintenance\MaintenanceTest" classname="Daycry.Maintenance.MaintenanceTest" file="C:\Users\46066917X\Documents\GitHub\maintenancemode\tests\Maintenance\MaintenanceTest.php" line="42" assertions="1" time="0.002041"/>
+    </testsuite>
+  </testsuite>
+</testsuites>
