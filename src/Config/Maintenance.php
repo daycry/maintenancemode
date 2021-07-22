@@ -11,6 +11,6 @@ class Maintenance extends BaseConfig
     //--------------------------------------------------------------------
     // 
     //
-    public $FilePath = WRITEPATH . 'maintenance/';
-    public $FileName = 'down';
+    public $filePath = WRITEPATH . 'maintenance/';
+    public $fileName = 'down';
 }
