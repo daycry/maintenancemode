@@ -16,9 +16,9 @@ class Status extends BaseCommand
 	{
 		$config = \Daycry\Maintenance\Libraries\Config::getConfig();
 
-		if( file_exists( $config->FilePath . $config->FileName ) )
+		if( file_exists( $config->filePath . $config->fileName ) )
         {
-			$data = json_decode( file_get_contents( $config->FilePath . $config->FileName ), true );
+			$data = json_decode( file_get_contents( $config->filePath . $config->fileName ), true );
 			
 			CLI::newLine( 1 );
 			CLI::error( 'Application is already DOWN.' );
