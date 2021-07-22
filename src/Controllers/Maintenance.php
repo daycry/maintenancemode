@@ -19,7 +19,7 @@ class Maintenance extends Controller
 
         $config = \Daycry\Maintenance\Libraries\Config::getConfig();
 
-        $donwFilePath = $config->FilePath . $config->FileName;
+        $donwFilePath = $config->filePath . $config->fileName;
 
         // if donw file does not exist app should keep running
         if( !file_exists( $donwFilePath ) )
