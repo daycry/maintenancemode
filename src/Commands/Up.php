@@ -18,7 +18,7 @@ class Up extends BaseCommand
 		$config = \Daycry\Maintenance\Libraries\Config::getConfig();
 
 		//delete the file with json content
-		@unlink( $config->FilePath . $config->FileName );
+		@unlink( $config->filePath . $config->fileName );
 
 		CLI::newLine( 1 );
 		CLI::write( '**** Application is now live. ****', 'black', 'green' );
