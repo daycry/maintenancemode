@@ -17,7 +17,7 @@ class Down extends BaseCommand
 	{
 		$config = \Daycry\Maintenance\Libraries\Config::getConfig();
 
-		if( !file_exists( $config->FilePath . $config->FileName ) )
+		if( !file_exists( $config->filePath . $config->fileName ) )
         {	
 			$message = $params[ 'message' ] ?? CLI::getOption( 'message' );
 
@@ -36,11 +36,11 @@ class Down extends BaseCommand
 			$ips_array = explode( " ", $ips_str );
 
 			// dir doesn't exist, make it
-			if( !is_dir( $config->FilePath ) ){ mkdir( $config->FilePath ); }
+			if( !is_dir( $config->filePath ) ){ mkdir( $config->filePath ); }
 
 			// write the file with json content
 			file_put_contents(
-				$config->FilePath . $config->FileName,
+				$config->filePath . $config->fileName,
 				json_encode(
                     [
                         "time"			=> strtotime( "now" ),
