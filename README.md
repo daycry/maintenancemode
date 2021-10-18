@@ -1,4 +1,4 @@
-# Maintenance Mode
+# Maintenance Mode [![](https://github.com/daycry/maintenancemode/workflows/PHP%20Tests/badge.svg)](https://github.com/daycry/maintenancemode/actions?query=workflow%3A%22PHP+Tests%22)
 
 for Codeigniter 4
 

@@ -19,7 +19,7 @@ class MaintenanceTest extends TestCase
         command( 'mm:down -message "'. $this->message .'" -ip ' . $this->ip );
         
         $this->assertFileExists( 
-            $config->FilePath . $config->FileName, 
+            $config->filePath . $config->fileName, 
             "given filename doesn't exists"
         ); 
     }
@@ -30,9 +30,9 @@ class MaintenanceTest extends TestCase
 
         command( 'mm:status' );
         
-        $this->assertFileExists( $config->FilePath . $config->FileName, "given filename doesn't exists" );
+        $this->assertFileExists( $config->filePath . $config->fileName, "given filename doesn't exists" );
 
-        $data = json_decode( file_get_contents( $config->FilePath . $config->FileName ), true );
+        $data = \json_decode( file_get_contents( $config->filePath . $config->fileName ), true );
 
         $this->assertEquals( $this->message, $data[ 'message'] );
 
@@ -45,7 +45,7 @@ class MaintenanceTest extends TestCase
 
         command( 'mm:up' );
         
-        $this->assertFileNotExists( $config->FilePath . $config->FileName, "given filename does exists" ); 
+        $this->assertFileNotExists( $config->filePath . $config->fileName, "given filename does exists" ); 
     }
 
     /**
