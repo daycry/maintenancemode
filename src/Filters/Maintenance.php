@@ -5,7 +5,7 @@ use CodeIgniter\Filters\FilterInterface;
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
 
-class MaintenanceMode implements FilterInterface
+class Maintenance implements FilterInterface
 {
 		/**
 		 * This is implementation of Maintenance Mode class
