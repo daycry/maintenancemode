@@ -19,7 +19,7 @@ jobs:
         php-versions: ['7.4', '8.0']
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v2
 
       - name: Setup PHP, with composer and extensions
         uses: shivammathur/setup-php@v2
@@ -43,7 +43,7 @@ jobs:
         run: composer install --ansi --no-interaction
 
       - name: Test with PHPUnit
-        run: script -e -c "vendor/bin/phpunit --color=always --exclude-group=auto-review ${{ steps.phpunit-coverage-option.outputs.result }}"
+        run: script -e -c "vendor/bin/phpunit -v"
       
       - name: Run Coveralls
         if: matrix.php-versions == '8.0'
