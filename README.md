@@ -34,17 +34,44 @@ Run command:
 This command will copy a config file to your app namespace.
 Then you can adjust it to your needs. By default file will be present in `app/Config/Maintenance.php`.
 
+
+## Commands Available
+
+```php
+php spark mm:down
+php spark mm:status
+php spark mm:up
+```
+
+## Use it
+
+#### Method 1 (Recommended)
 Create new event in **app/Config/Events.php**
 
 ```php
 Events::on( 'pre_system', 'Daycry\Maintenance\Controllers\Maintenance::check' );
 ```
 
+#### Method 2
 
-## Usage
+edit application/Config/Filters.php and
+add the new line in $aliases array:
 
 ```php
-php spark mm:down
-php spark mm:status
-php spark mm:up
+public $aliases = [
+    'maintenance' => \Daycry\Maintenance\Filters\Maintenance::class,
+    ...
+]
+```
+and add "maintenance" in $globals['before'] array:
+```php
+public $globals = [
+    'before' => [
+        'maintenance',
+        ...
+    ],
+    'after'  => [
+        ...
+    ],
+];
 ```
