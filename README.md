@@ -1,8 +1,9 @@
 [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/donate?business=SYC5XDT23UZ5G&no_recurring=0&item_name=Thank+you%21&currency_code=EUR)
 
-# Maintenance Mode [![](https://github.com/daycry/maintenancemode/workflows/PHP%20Tests/badge.svg)](https://github.com/daycry/maintenancemode/actions?query=workflow%3A%22PHP+Tests%22)
+# Maintenance Mode for Codeigniter 4
 
-for Codeigniter 4
+
+[![](https://github.com/daycry/maintenancemode/workflows/PHP%20Tests/badge.svg)](https://github.com/daycry/maintenancemode/actions?query=workflow%3A%22PHP+Tests%22)
 
 ## Installation via composer
 
@@ -46,13 +47,4 @@ Events::on( 'pre_system', 'Daycry\Maintenance\Controllers\Maintenance::check' );
 php spark mm:down
 php spark mm:status
 php spark mm:up
-```
-
-## How Run Tests
-
-```php
-cd vendor\daycry\maintenancemode\
-composer install
-vendor\bin\phpunit
-
 ```
