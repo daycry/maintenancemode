@@ -17,7 +17,8 @@
 			<directory suffix=".php">./src</directory>
 		</include>
 		<exclude>
-			<directory suffix=".php">./src/Commands</directory>
+			<!--<directory suffix=".php">./src/Commands</directory>-->
+            <file>./src/Commands/Publish.php</file>
 		</exclude>
 		<report>
 			<clover outputFile="build/logs/clover.xml"/>

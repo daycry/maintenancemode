@@ -1,0 +1,7 @@
+vendor
+build
+composer.lock
+.php-cs-fixer.cache
+.phpunit.result.cache
+tests/_support/maintenance/*
+!tests/_support/maintenance/index.html
