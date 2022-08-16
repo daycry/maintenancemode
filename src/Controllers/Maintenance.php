@@ -15,7 +15,7 @@ class Maintenance extends Controller
     public static function check()
     {
         // if request is from CLI
-        if(is_cli()) return true;
+        if(is_cli() && ENVIRONMENT !== 'testing') return true;
 
         $config = \Daycry\Maintenance\Libraries\Config::getConfig();
 
@@ -45,7 +45,9 @@ class Maintenance extends Controller
 
         if( $cookieName == $data[ "cookie_name" ] )
         {
+            // @codeCoverageIgnoreStart
             return true;
+            // @codeCoverageIgnoreEnd
         }
 
         throw ServiceUnavailableException::forServerDow( $data[ "message" ] );

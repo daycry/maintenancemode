@@ -16,7 +16,7 @@ class Maintenance implements FilterInterface
 		 */
 		public function before( RequestInterface $request, $arguments = null )
 		{
-			\Daycry\Maintenance\Controllers\Maintenance::check();
+			return \Daycry\Maintenance\Controllers\Maintenance::check();
 		}
 
 		//--------------------------------------------------------------------

@@ -1,6 +1,9 @@
 <?php
 namespace Daycry\Maintenance\Libraries;
 
+/**
+ * @codeCoverageIgnore
+ */
 class IpUtils
 {
     private static $checkedIps = [];
