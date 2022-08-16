@@ -3,7 +3,12 @@
 # Maintenance Mode for Codeigniter 4
 
 
-[![](https://github.com/daycry/maintenancemode/workflows/PHP%20Tests/badge.svg)](https://github.com/daycry/maintenancemode/actions?query=workflow%3A%22PHP+Tests%22)
+[![Build Status](https://github.com/daycry/maintenancemode/workflows/PHP%20Tests/badge.svg)](https://github.com/daycry/maintenancemode/actions?query=workflow%3A%22PHP+Tests%22)
+[![Coverage Status](https://coveralls.io/repos/github/daycry/maintenancemode/badge.svg?branch=master)](https://coveralls.io/github/daycry/maintenancemode?branch=master)
+[![Downloads](https://poser.pugx.org/daycry/maintenancemode/downloads)](https://packagist.org/packages/daycry/maintenancemode)
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/daycry/maintenancemode)](https://packagist.org/packages/daycry/maintenancemode)
+[![GitHub stars](https://img.shields.io/github/stars/daycry/maintenancemode)](https://packagist.org/packages/daycry/maintenancemode)
+[![GitHub license](https://img.shields.io/github/license/daycry/maintenancemode)](https://github.com/daycry/maintenancemode/blob/master/LICENSE)
 
 ## Installation via composer
 
