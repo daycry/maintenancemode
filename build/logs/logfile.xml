@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="" tests="11" assertions="17" errors="0" warnings="0" failures="0" skipped="0" time="0.534759">
+    <testsuite name="MaintenanceMode" tests="11" assertions="17" errors="0" warnings="0" failures="0" skipped="0" time="0.534759">
+      <testsuite name="Tests\Maintenance\CommandsTest" file="C:\Users\46066917X\Documents\GitHub\maintenancemode\tests\Maintenance\CommandsTest.php" tests="6" assertions="12" errors="0" warnings="0" failures="0" skipped="0" time="0.264573">
+        <testcase name="testCommandInMaintenanceDown" class="Tests\Maintenance\CommandsTest" classname="Tests.Maintenance.CommandsTest" file="C:\Users\46066917X\Documents\GitHub\maintenancemode\tests\Maintenance\CommandsTest.php" line="40" assertions="3" time="0.176925"/>
+        <testcase name="testCommandInMaintenanceAlreadyDown" class="Tests\Maintenance\CommandsTest" classname="Tests.Maintenance.CommandsTest" file="C:\Users\46066917X\Documents\GitHub\maintenancemode\tests\Maintenance\CommandsTest.php" line="51" assertions="3" time="0.013717"/>
+        <testcase name="testCommandCheckStatusDown" class="Tests\Maintenance\CommandsTest" classname="Tests.Maintenance.CommandsTest" file="C:\Users\46066917X\Documents\GitHub\maintenancemode\tests\Maintenance\CommandsTest.php" line="62" assertions="3" time="0.015823"/>
+        <testcase name="testCommandMaintenanceUp" class="Tests\Maintenance\CommandsTest" classname="Tests.Maintenance.CommandsTest" file="C:\Users\46066917X\Documents\GitHub\maintenancemode\tests\Maintenance\CommandsTest.php" line="73" assertions="1" time="0.020548"/>
+        <testcase name="testCommandMaintenanceAlreadyUp" class="Tests\Maintenance\CommandsTest" classname="Tests.Maintenance.CommandsTest" file="C:\Users\46066917X\Documents\GitHub\maintenancemode\tests\Maintenance\CommandsTest.php" line="80" assertions="1" time="0.015145"/>
+        <testcase name="testCommandInMaintenanceDownWithoutMessage" class="Tests\Maintenance\CommandsTest" classname="Tests.Maintenance.CommandsTest" file="C:\Users\46066917X\Documents\GitHub\maintenancemode\tests\Maintenance\CommandsTest.php" line="87" assertions="1" time="0.022414"/>
+      </testsuite>
+      <testsuite name="Tests\Maintenance\EventsTest" file="C:\Users\46066917X\Documents\GitHub\maintenancemode\tests\Maintenance\EventsTest.php" tests="3" assertions="3" errors="0" warnings="0" failures="0" skipped="0" time="0.083199">
+        <testcase name="testRunEventUp" class="Tests\Maintenance\EventsTest" classname="Tests.Maintenance.EventsTest" file="C:\Users\46066917X\Documents\GitHub\maintenancemode\tests\Maintenance\EventsTest.php" line="36" assertions="1" time="0.017218"/>
+        <testcase name="testRunEventDown" class="Tests\Maintenance\EventsTest" classname="Tests.Maintenance.EventsTest" file="C:\Users\46066917X\Documents\GitHub\maintenancemode\tests\Maintenance\EventsTest.php" line="44" assertions="1" time="0.035785"/>
+        <testcase name="testRunEventDownWithAccessValidIp" class="Tests\Maintenance\EventsTest" classname="Tests.Maintenance.EventsTest" file="C:\Users\46066917X\Documents\GitHub\maintenancemode\tests\Maintenance\EventsTest.php" line="55" assertions="1" time="0.030196"/>
+      </testsuite>
+      <testsuite name="Tests\Maintenance\FiltersTest" file="C:\Users\46066917X\Documents\GitHub\maintenancemode\tests\Maintenance\FiltersTest.php" tests="2" assertions="2" errors="0" warnings="0" failures="0" skipped="0" time="0.186987">
+        <testcase name="testCallingFilterOk" class="Tests\Maintenance\FiltersTest" classname="Tests.Maintenance.FiltersTest" file="C:\Users\46066917X\Documents\GitHub\maintenancemode\tests\Maintenance\FiltersTest.php" line="44" assertions="1" time="0.065606"/>
+        <testcase name="testCallingFilterKo" class="Tests\Maintenance\FiltersTest" classname="Tests.Maintenance.FiltersTest" file="C:\Users\46066917X\Documents\GitHub\maintenancemode\tests\Maintenance\FiltersTest.php" line="51" assertions="1" time="0.121381"/>
+      </testsuite>
+    </testsuite>
+  </testsuite>
+</testsuites>
