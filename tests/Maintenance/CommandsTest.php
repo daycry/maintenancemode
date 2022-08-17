@@ -27,6 +27,7 @@ class CommandsTest extends CIUnitTestCase
 
         CITestStreamFilter::$buffer = '';
         $this->streamFilter = stream_filter_append(STDOUT, 'CITestStreamFilter');
+        $this->streamFilter = stream_filter_append(STDERR, 'CITestStreamFilter');
 
         $this->config = new \Daycry\Maintenance\Config\Maintenance();
     }
@@ -39,7 +40,7 @@ class CommandsTest extends CIUnitTestCase
     public function testCommandInMaintenanceDown()
     {
         command( 'mm:down -message "'. $this->message .'" -ip ' . $this->ip );
-
+        //$result = CITestStreamFilter::$buffer;
         $data = \json_decode( file_get_contents( $this->config->filePath . $this->config->fileName ), true );
 
         $this->assertFileExists( $this->config->filePath . $this->config->fileName );

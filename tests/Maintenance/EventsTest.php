@@ -2,7 +2,7 @@
 
 namespace Tests\Maintenance;
 
-use CodeIgniter\Config\BaseConfig;
+use CodeIgniter\Test\Filters\CITestStreamFilter;
 use CodeIgniter\Test\CIUnitTestCase;
 use CodeIgniter\Events\Events;
 
@@ -12,10 +12,19 @@ class EventsTest extends CIUnitTestCase
     private $ip = '127.0.0.1';
     private $validIp = '0.0.0.0';
 
+    /**
+     * @var resource
+     */
+    private $streamFilter;
+
     protected function setUp(): void
     {
         parent::setUp();
 
+        CITestStreamFilter::$buffer = '';
+        $this->streamFilter = stream_filter_append(STDOUT, 'CITestStreamFilter');
+        $this->streamFilter = stream_filter_append(STDERR, 'CITestStreamFilter');
+        
         $this->config = new \Daycry\Maintenance\Config\Maintenance();
     }
 

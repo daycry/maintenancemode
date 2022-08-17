@@ -3,11 +3,10 @@
 namespace Tests\Maintenance;
 
 use CodeIgniter\Config\Factories;
-use CodeIgniter\Router\RouteCollection;
 use CodeIgniter\Test\CIUnitTestCase;
-use CodeIgniter\Test\FilterTestTrait;
 use CodeIgniter\Test\FeatureTestTrait;
 use CodeIgniter\Config\Services;
+use CodeIgniter\Test\Filters\CITestStreamFilter;
 
 use Daycry\Maintenance\Filters\Maintenance;
 
@@ -18,9 +17,18 @@ class FiltersTest extends CIUnitTestCase
     private $message = 'In maintenance';
     private $ip = '127.0.0.1';
 
+    /**
+     * @var resource
+     */
+    private $streamFilter;
+
     protected function setUp(): void
     {
         parent::setUp();
+
+        CITestStreamFilter::$buffer = '';
+        $this->streamFilter = stream_filter_append(STDOUT, 'CITestStreamFilter');
+        $this->streamFilter = stream_filter_append(STDERR, 'CITestStreamFilter');
 
         $filters = config('Filters');
         $filters->aliases['maintenance'] = Maintenance::class;
@@ -51,6 +59,8 @@ class FiltersTest extends CIUnitTestCase
 
     protected function tearDown(): void
     {
+        stream_filter_remove($this->streamFilter);
+
         parent::tearDown();
         Services::reset();
     }
