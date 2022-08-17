@@ -42,8 +42,8 @@ jobs:
       - name: Install dependencies
         run: composer install --ansi --no-interaction
 
-      # - name: Test with PHPUnit
-      #  run: script -e -c "vendor/bin/phpunit --color=always --exclude-group=auto-review ${{ steps.phpunit-coverage-option.outputs.result }}"
+      - name: Test with PHPUnit
+        run: script -e -c "vendor/bin/phpunit --color=always --exclude-group=auto-review ${{ steps.phpunit-coverage-option.outputs.result }}"
       
       - name: Run Coveralls
         if: matrix.php-versions == '8.0'
