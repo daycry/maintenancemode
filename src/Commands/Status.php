@@ -14,11 +14,9 @@ class Status extends BaseCommand
 
 	public function run(array $params)
 	{
-		$config = \Daycry\Maintenance\Libraries\Config::getConfig();
-
-		if( file_exists( $config->filePath . $config->fileName ) )
+		if( file_exists( setting('Maintenance.filePath') . setting('Maintenance.fileName') ) )
         {
-			$data = json_decode( file_get_contents( $config->filePath . $config->fileName ), true );
+			$data = json_decode( file_get_contents( setting('Maintenance.filePath') . setting('Maintenance.fileName') ) );
 			
 			CLI::newLine( 1 );
 			CLI::error( 'Application is already DOWN.' );
@@ -53,7 +51,7 @@ class Status extends BaseCommand
 
 			$tbody = array();
 
-			foreach( $data['allowed_ips'] as $ip )
+			foreach( $data->allowed_ips as $ip )
             {
 				$tbody[] = [ $ip ];
 			}

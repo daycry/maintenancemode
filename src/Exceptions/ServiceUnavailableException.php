@@ -1,7 +1,10 @@
 <?php
 namespace Daycry\Maintenance\Exceptions;
 
-class ServiceUnavailableException extends \RuntimeException implements ExceptionInterface
+use Daycry\Exceptions\Exceptions\RuntimeException;
+use Daycry\Exceptions\Interfaces\BaseExceptionInterface;
+
+class ServiceUnavailableException extends RuntimeException implements BaseExceptionInterface
 {
 	/**
 	 * Error code

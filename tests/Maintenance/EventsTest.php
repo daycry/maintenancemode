@@ -2,30 +2,25 @@
 
 namespace Tests\Maintenance;
 
-use CodeIgniter\Test\Filters\CITestStreamFilter;
 use CodeIgniter\Test\CIUnitTestCase;
 use CodeIgniter\Events\Events;
+use CodeIgniter\Test\StreamFilterTrait;
+use Daycry\Maintenance\Exceptions\ServiceUnavailableException;
+use Tests\Support\TestCase;
 
-class EventsTest extends CIUnitTestCase
+class EventsTest extends TestCase
 {
-    private $message = 'In maintenance';
-    private $ip = '127.0.0.1';
-    private $validIp = '0.0.0.0';
+    use StreamFilterTrait;
 
-    /**
-     * @var resource
-     */
-    private $streamFilter;
+    private string $message = 'In maintenance';
+    private string $ip = '127.0.0.1';
+    private string $validIp = '0.0.0.0';
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        CITestStreamFilter::$buffer = '';
-        $this->streamFilter = stream_filter_append(STDOUT, 'CITestStreamFilter');
-        $this->streamFilter = stream_filter_append(STDERR, 'CITestStreamFilter');
-        
-        $this->config = new \Daycry\Maintenance\Config\Maintenance();
+        helper('setting');
     }
 
     public static function setUpBeforeClass(): void
@@ -43,7 +38,7 @@ class EventsTest extends CIUnitTestCase
 
     public function testRunEventDown()
     {
-        $this->expectException(\Daycry\Maintenance\Exceptions\ServiceUnavailableException::class);
+        $this->expectException(ServiceUnavailableException::class);
 
         command( 'mm:down -message "'. $this->message .'" -ip ' . $this->ip );
 
@@ -65,8 +60,7 @@ class EventsTest extends CIUnitTestCase
 
     public static function tearDownAfterClass(): void
     {
-        $config = new \Daycry\Maintenance\Config\Maintenance();
-        unlink($config->filePath . $config->fileName);
+        unlink(setting('Maintenance.filePath') . setting('Maintenance.fileName'));
     }
 
     protected function tearDown(): void

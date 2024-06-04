@@ -2,34 +2,21 @@
 
 namespace Tests\Maintenance;
 
-use CodeIgniter\Config\BaseConfig;
-use CodeIgniter\Test\CIUnitTestCase;
-use CodeIgniter\Test\Filters\CITestStreamFilter;
+use CodeIgniter\Test\StreamFilterTrait;
+use Tests\Support\TestCase;
 
-class CommandsTest extends CIUnitTestCase
+final class CommandsTest extends TestCase
 {
-    private $message = 'In maintenance';
-    private $ip = '127.0.0.1';
+    use StreamFilterTrait;
 
-    /**
-     * @var resource
-     */
-    private $streamFilter;
+    private string $message = 'In maintenance';
+    private string $ip = '127.0.0.1';
 
-    /**
-     * @var BaseConfig
-     */
-    private BaseConfig $config;
-    
     protected function setUp(): void
     {
         parent::setUp();
 
-        CITestStreamFilter::$buffer = '';
-        $this->streamFilter = stream_filter_append(STDOUT, 'CITestStreamFilter');
-        $this->streamFilter = stream_filter_append(STDERR, 'CITestStreamFilter');
-
-        $this->config = new \Daycry\Maintenance\Config\Maintenance();
+        helper( 'setting' );
     }
 
     public static function setUpBeforeClass(): void
@@ -37,58 +24,54 @@ class CommandsTest extends CIUnitTestCase
         parent::setUpBeforeClass();
     }
 
-    public function testCommandInMaintenanceDown()
+    public function testCommandInMaintenanceDown(): void
     {
         command( 'mm:down -message "'. $this->message .'" -ip ' . $this->ip );
         //$result = CITestStreamFilter::$buffer;
-        $data = \json_decode( file_get_contents( $this->config->filePath . $this->config->fileName ), true );
+        $data = json_decode( file_get_contents( setting('Maintenance.filePath') . setting('Maintenance.fileName') ));
 
-        $this->assertFileExists( $this->config->filePath . $this->config->fileName );
-        $this->assertSame( $this->message, $data['message'] );
-        $this->assertTrue( $this->_arrays_are_similar( \explode( ' ', $this->ip ), $data[ 'allowed_ips' ] ) );
+        $this->assertFileExists( setting('Maintenance.filePath') . setting('Maintenance.fileName') );
+        $this->assertSame( $this->message, $data->message );
+        $this->assertTrue( $this->_arrays_are_similar( \explode( ' ', $this->ip ), (array)$data->allowed_ips ) );
     }
 
-    public function testCommandInMaintenanceAlreadyDown()
+    public function testCommandInMaintenanceAlreadyDown(): void
     {
         command( 'mm:down -message "'. $this->message .'" -ip ' . $this->ip );
 
-        $data = \json_decode( file_get_contents( $this->config->filePath . $this->config->fileName ), true );
-
-        $this->assertFileExists( $this->config->filePath . $this->config->fileName );
-        $this->assertSame( $this->message, $data['message'] );
-        $this->assertTrue( $this->_arrays_are_similar( \explode( ' ', $this->ip ), $data[ 'allowed_ips' ] ) );
+        $this->assertStringContainsString('Application is already DOWN', $this->getStreamFilterBuffer());
     }
 
     public function testCommandCheckStatusDown()
     {
         command( 'mm:status' );
 
-        $data = \json_decode( file_get_contents( $this->config->filePath . $this->config->fileName ), true );
+        $data = \json_decode( file_get_contents( setting('Maintenance.filePath') . setting('Maintenance.fileName') ) );
 
-        $this->assertFileExists( $this->config->filePath . $this->config->fileName );
-        $this->assertEquals( $this->message, $data[ 'message'] );
-        $this->assertTrue( $this->_arrays_are_similar( \explode( ' ', $this->ip ), $data[ 'allowed_ips' ] ) );
+        $this->assertFileExists( setting('Maintenance.filePath') . setting('Maintenance.fileName') );
+        $this->assertEquals( $this->message, $data->message );
+        $this->assertTrue( $this->_arrays_are_similar( \explode( ' ', $this->ip ), (array)$data->allowed_ips ) );
     }
 
     public function testCommandMaintenanceUp()
     {
         command( 'mm:up' );
 
-        $this->assertFileDoesNotExist( $this->config->filePath . $this->config->fileName);
+        $this->assertFileDoesNotExist( setting('Maintenance.filePath') . setting('Maintenance.fileName'));
     }
 
     public function testCommandMaintenanceAlreadyUp()
     {
         $output = command( 'mm:status' );
 
-        $this->assertFileDoesNotExist( $this->config->filePath . $this->config->fileName);
+        $this->assertFileDoesNotExist( setting('Maintenance.filePath') . setting('Maintenance.fileName'));
     }
 
     public function testCommandInMaintenanceDownWithoutMessage()
     {
         command( 'mm:down' );
         
-        $this->assertFileExists( $this->config->filePath . $this->config->fileName );
+        $this->assertFileExists( setting('Maintenance.filePath') . setting('Maintenance.fileName') );
     }
 
     /**
@@ -101,7 +84,7 @@ class CommandsTest extends CIUnitTestCase
      * @param array $b
      * @return bool
      */
-    private function _arrays_are_similar( $a, $b )
+    private function _arrays_are_similar( $a, $b ): bool
     {
         // if the indexes don't match, return immediately
         if( count( array_diff_assoc( $a, $b ) ) )
@@ -126,10 +109,5 @@ class CommandsTest extends CIUnitTestCase
     {
         $config = new \Daycry\Maintenance\Config\Maintenance();
         unlink($config->filePath . $config->fileName);
-    }
-
-    protected function tearDown(): void
-    {
-        stream_filter_remove($this->streamFilter);
     }
 }

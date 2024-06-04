@@ -4,7 +4,7 @@ namespace Daycry\Maintenance\Filters;
 use CodeIgniter\Filters\FilterInterface;
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
-
+use Daycry\Maintenance\Controllers\Maintenance as MaintenanceController;
 class Maintenance implements FilterInterface
 {
 		/**
@@ -16,7 +16,7 @@ class Maintenance implements FilterInterface
 		 */
 		public function before( RequestInterface $request, $arguments = null )
 		{
-			return \Daycry\Maintenance\Controllers\Maintenance::check();
+			return MaintenanceController::check();
 		}
 
 		//--------------------------------------------------------------------

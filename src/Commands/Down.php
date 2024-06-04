@@ -15,9 +15,9 @@ class Down extends BaseCommand
 
 	public function run( array $params )
 	{
-		$config = \Daycry\Maintenance\Libraries\Config::getConfig();
+		helper(['setting', 'text']);
 
-		if( !file_exists( $config->filePath . $config->fileName ) )
+		if( !file_exists( setting('Maintenance.filePath') . setting('Maintenance.fileName') ) )
         {	
 			$message = $params[ 'message' ] ?? CLI::getOption( 'message' );
 
@@ -36,16 +36,16 @@ class Down extends BaseCommand
 			$ips_array = explode( " ", $ips_str );
 
 			// dir doesn't exist, make it
-			if( !is_dir( $config->filePath ) ){ mkdir( $config->filePath ); }
+			if( !is_dir( setting('Maintenance.filePath') ) ){ mkdir( setting('Maintenance.filePath') ); }
 
 			// write the file with json content
 			file_put_contents(
-				$config->filePath . $config->fileName,
+				setting('Maintenance.filePath') . setting('Maintenance.fileName'),
 				json_encode(
                     [
                         "time"			=> strtotime( "now" ),
                         "message" 		=> $message,
-                        "cookie_name"	=> $this->randomhash( 8 ),
+                        "cookie_name"	=> random_string( 'alnum', 8 ),
                         "allowed_ips"	=> $ips_array
 				    ], 
                     JSON_PRETTY_PRINT
@@ -64,18 +64,4 @@ class Down extends BaseCommand
 			CLI::newLine( 1 );
 		}
 	}
-
-	function randomhash( $len = 8 )
-    {
-		$seed = str_split( 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789' );
-		shuffle( $seed );
-		$rand = '';
-		
-		foreach( array_rand( $seed, $len ) as $k )
-		{
-			$rand .= $seed[ $k ];
-		}
-		
-		return $rand;
-	  }
 }

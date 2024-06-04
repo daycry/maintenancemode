@@ -6,29 +6,22 @@ use CodeIgniter\Config\Factories;
 use CodeIgniter\Test\CIUnitTestCase;
 use CodeIgniter\Test\FeatureTestTrait;
 use CodeIgniter\Config\Services;
-use CodeIgniter\Test\Filters\CITestStreamFilter;
-
+use CodeIgniter\Test\StreamFilterTrait;
 use Daycry\Maintenance\Filters\Maintenance;
+use Daycry\Maintenance\Exceptions\ServiceUnavailableException;
+use Tests\Support\TestCase;
 
-class FiltersTest extends CIUnitTestCase
+class FiltersTest extends TestCase
 {
     use FeatureTestTrait;
+    use StreamFilterTrait;
 
-    private $message = 'In maintenance';
-    private $ip = '127.0.0.1';
-
-    /**
-     * @var resource
-     */
-    private $streamFilter;
+    private string $message = 'In maintenance';
+    private string $ip = '127.0.0.1';
 
     protected function setUp(): void
     {
         parent::setUp();
-
-        CITestStreamFilter::$buffer = '';
-        $this->streamFilter = stream_filter_append(STDOUT, 'CITestStreamFilter');
-        $this->streamFilter = stream_filter_append(STDERR, 'CITestStreamFilter');
 
         $filters = config('Filters');
         $filters->aliases['maintenance'] = Maintenance::class;
@@ -50,7 +43,7 @@ class FiltersTest extends CIUnitTestCase
 
     public function testCallingFilterKo()
     {
-        $this->expectException(\Daycry\Maintenance\Exceptions\ServiceUnavailableException::class);
+        $this->expectException(ServiceUnavailableException::class);
 
         command( 'mm:down -message "'. $this->message .'" -ip ' . $this->ip );
 
@@ -59,15 +52,12 @@ class FiltersTest extends CIUnitTestCase
 
     protected function tearDown(): void
     {
-        stream_filter_remove($this->streamFilter);
-
         parent::tearDown();
         Services::reset();
     }
 
     public static function tearDownAfterClass(): void
     {
-        $config = new \Daycry\Maintenance\Config\Maintenance();
-        unlink($config->filePath . $config->fileName);
+        unlink(setting('Maintenance.filePath') . setting('Maintenance.fileName'));
     }
 }
