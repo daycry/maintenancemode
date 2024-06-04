@@ -8,10 +8,6 @@ use Daycry\Maintenance\Exceptions\ServiceUnavailableException;
 
 class Maintenance extends Controller
 {
-    private $config;
-
-    public function __construct(){}
-
     public static function check()
     {
         // if request is from CLI
