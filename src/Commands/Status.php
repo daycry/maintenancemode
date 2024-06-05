@@ -14,6 +14,7 @@ class Status extends BaseCommand
 
 	public function run(array $params)
 	{
+		helper('setting');
 		if( file_exists( setting('Maintenance.filePath') . setting('Maintenance.fileName') ) )
         {
 			$data = json_decode( file_get_contents( setting('Maintenance.filePath') . setting('Maintenance.fileName') ) );
