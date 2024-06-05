@@ -15,6 +15,7 @@ class Up extends BaseCommand
 
 	public function run( array $params )
 	{
+		helper( 'setting' );
 		//delete the file with json content
 		@unlink( setting('Maintenance.filePath') . setting('Maintenance.fileName') );
 
