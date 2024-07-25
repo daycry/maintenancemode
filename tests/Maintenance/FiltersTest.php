@@ -3,35 +3,36 @@
 namespace Tests\Maintenance;
 
 use CodeIgniter\Config\Factories;
-use CodeIgniter\Test\CIUnitTestCase;
-use CodeIgniter\Test\FeatureTestTrait;
 use CodeIgniter\Config\Services;
+use CodeIgniter\Test\FeatureTestTrait;
 use CodeIgniter\Test\StreamFilterTrait;
-use Daycry\Maintenance\Filters\Maintenance;
 use Daycry\Maintenance\Exceptions\ServiceUnavailableException;
+use Daycry\Maintenance\Filters\Maintenance;
 use Tests\Support\TestCase;
 
-class FiltersTest extends TestCase
+/**
+ * @internal
+ */
+final class FiltersTest extends TestCase
 {
     use FeatureTestTrait;
     use StreamFilterTrait;
 
     private string $message = 'In maintenance';
-    private string $ip = '127.0.0.1';
+    private string $ip      = '127.0.0.1';
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $filters = config('Filters');
+        $filters                         = config('Filters');
         $filters->aliases['maintenance'] = Maintenance::class;
         Factories::injectMock('filters', 'filters', $filters);
 
         $routes = Services::routes();
 
-        $routes->get('hello', '\Tests\Support\Controllers\Hello', ['filter' => "maintenance"], );
+        $routes->get('hello', '\Tests\Support\Controllers\Hello', ['filter' => 'maintenance']);
         Services::injectMock('routes', $routes);
-
     }
 
     public function testCallingFilterOk()
@@ -45,7 +46,7 @@ class FiltersTest extends TestCase
     {
         $this->expectException(ServiceUnavailableException::class);
 
-        command( 'mm:down -message "'. $this->message .'" -ip ' . $this->ip );
+        command('mm:down -message "' . $this->message . '" -ip ' . $this->ip);
 
         $result = $this->call('get', 'hello');
     }

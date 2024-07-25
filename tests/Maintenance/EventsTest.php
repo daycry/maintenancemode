@@ -2,18 +2,20 @@
 
 namespace Tests\Maintenance;
 
-use CodeIgniter\Test\CIUnitTestCase;
 use CodeIgniter\Events\Events;
 use CodeIgniter\Test\StreamFilterTrait;
 use Daycry\Maintenance\Exceptions\ServiceUnavailableException;
 use Tests\Support\TestCase;
 
-class EventsTest extends TestCase
+/**
+ * @internal
+ */
+final class EventsTest extends TestCase
 {
     use StreamFilterTrait;
 
     private string $message = 'In maintenance';
-    private string $ip = '127.0.0.1';
+    private string $ip      = '127.0.0.1';
     private string $validIp = '0.0.0.0';
 
     protected function setUp(): void
@@ -40,7 +42,7 @@ class EventsTest extends TestCase
     {
         $this->expectException(ServiceUnavailableException::class);
 
-        command( 'mm:down -message "'. $this->message .'" -ip ' . $this->ip );
+        command('mm:down -message "' . $this->message . '" -ip ' . $this->ip);
 
         Events::on('maintenance', 'Daycry\Maintenance\Controllers\Maintenance::check');
 
@@ -49,9 +51,9 @@ class EventsTest extends TestCase
 
     public function testRunEventDownWithAccessValidIp()
     {
-        command( 'mm:up' );
+        command('mm:up');
 
-        command( 'mm:down -message "'. $this->message .'" -ip ' . $this->validIp );
+        command('mm:down -message "' . $this->message . '" -ip ' . $this->validIp);
 
         Events::on('maintenance', 'Daycry\Maintenance\Controllers\Maintenance::check');
 
