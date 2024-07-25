@@ -1,8 +1,6 @@
-name: PHP unit tests
+name: PHP Tests
 
 on:
-  schedule:
-    - cron: "0 12 * * *"
   push:
     branches: [ master ]
   pull_request:
@@ -46,12 +44,12 @@ jobs:
         run: composer install --ansi --no-interaction
 
       - name: Test with PHPUnit
-        run: script -e -c "vendor/bin/phpunit"
+        run: script -e -c "vendor/bin/phpunit -v"
       
       - name: Run Coveralls
         if: matrix.php-versions == '8.2'
         run: |
-          composer global require --ansi php-coveralls/php-coveralls:^2.7
+          composer global require --ansi php-coveralls/php-coveralls:^2.4
           php-coveralls --coverage_clover=build/logs/clover.xml -v
         env:
           COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -63,8 +61,7 @@ jobs:
 
     steps:
       - name: Coveralls Finished
-        uses: coverallsapp/github-action@v2
+        uses: coverallsapp/github-action@master
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           parallel-finished: true
-          fail-on-error: false
