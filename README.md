@@ -14,7 +14,7 @@
 
 Use the package with composer install
 
-	> composer composer require daycry/maintenancemode
+	> composer require daycry/maintenancemode
 
 ## Configuration
 
