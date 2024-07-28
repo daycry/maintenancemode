@@ -14,13 +14,13 @@
 
 Use the package with composer install
 
-	> composer require daycry/maintenancemode
+	composer require daycry/maintenancemode
 
 ## Configuration
 
 Run command:
 
-	> php spark mm:publish
+	php spark mm:publish
 
 This command will copy a config file to your app namespace.
 Then you can adjust it to your needs. By default file will be present in `app/Config/Maintenance.php`.
