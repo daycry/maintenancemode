@@ -5,7 +5,7 @@ namespace Daycry\Maintenance\Exceptions;
 use Daycry\Exceptions\Exceptions\RuntimeException;
 use Daycry\Exceptions\Interfaces\BaseExceptionInterface;
 
-class ServiceUnavailableException extends RuntimeException implements BaseExceptionInterface
+class ServiceUnavailableException extends RuntimeException implements BaseExceptionInterface,\CodeIgniter\Exceptions\HTTPExceptionInterface
 {
     /**
      * Error code
