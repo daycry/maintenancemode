@@ -40,6 +40,7 @@
             <directory>./src/Language</directory>
             <directory>./src/Views</directory>
             <directory>./src/Libraries</directory>
+            <file>./src/Commands/Publish.php</file>
         </exclude>
     </source>
     <logging>
