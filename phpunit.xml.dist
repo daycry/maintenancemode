@@ -36,6 +36,11 @@
         <include>
             <directory suffix=".php">./src</directory>
         </include>
+        <exclude>
+            <directory>./src/Language</directory>
+            <directory>./src/Views</directory>
+            <directory>./src/Libraries</directory>
+        </exclude>
     </source>
     <logging>
 		<testdoxHtml outputFile="build/logs/testdox.html"/>
