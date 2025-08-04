@@ -19,12 +19,11 @@
     "prefer-stable": true,
     "require": {
       "php": ">=8.2",
-        "codeigniter4/settings": "^2.2",
-        "daycry/exceptions": "^1.0"
+        "codeigniter4/settings": "^2.2"
     },
     "require-dev":
     {
-        "codeigniter4/devkit": "*",
+        "codeigniter4/devkit": "^1",
         "codeigniter4/framework": "^4"
     },
     "autoload": {

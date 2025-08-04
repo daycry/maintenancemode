@@ -17,11 +17,32 @@ class Up extends BaseCommand
     public function run(array $params)
     {
         helper('setting');
-        // delete the file with json content
-        @unlink(setting('Maintenance.filePath') . setting('Maintenance.fileName'));
+        
+        // Load configuration
+        $maintenanceConfig = new \Daycry\Maintenance\Config\Maintenance();
+        $maintenanceFile = setting('Maintenance.filePath') . setting('Maintenance.fileName');
+        
+        if (!file_exists($maintenanceFile)) {
+            CLI::newLine(1);
+            CLI::write('**** Application is already live. ****', 'green');
+            CLI::newLine(1);
+            return;
+        }
+        
+        // Log the event before deleting the file
+        if ($maintenanceConfig->enableLogging) {
+            log_message('info', 'Maintenance mode deactivated by CLI command');
+        }
+        
+        // Delete the maintenance file
+        if (!@unlink($maintenanceFile)) {
+            CLI::error('Failed to remove maintenance mode file. Please check file permissions.');
+            return;
+        }
 
         CLI::newLine(1);
-        CLI::write('**** Application is now live. ****', 'black', 'green');
+        CLI::write('**** Application is now LIVE! ****', 'black', 'green');
+        CLI::write('Users can now access the application normally.', 'green');
         CLI::newLine(1);
     }
 }

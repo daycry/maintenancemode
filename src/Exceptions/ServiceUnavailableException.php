@@ -2,10 +2,9 @@
 
 namespace Daycry\Maintenance\Exceptions;
 
-use Daycry\Exceptions\Exceptions\RuntimeException;
-use Daycry\Exceptions\Interfaces\BaseExceptionInterface;
+use CodeIgniter\Exceptions\RuntimeException;
 
-class ServiceUnavailableException extends RuntimeException implements BaseExceptionInterface,\CodeIgniter\Exceptions\HTTPExceptionInterface
+class ServiceUnavailableException extends RuntimeException
 {
     /**
      * Error code
@@ -14,8 +13,15 @@ class ServiceUnavailableException extends RuntimeException implements BaseExcept
      */
     protected $code = 503;
 
-    public static function forServerDow(?string $message = null)
+    /**
+     * Create a new ServiceUnavailableException for server down status
+     *
+     * @param string|null $message Custom message for the maintenance mode
+     *
+     * @return static
+     */
+    public static function forServerDown(?string $message = null)
     {
-        return new static($message ?? false);
+        return new static($message ?? 'Service temporarily unavailable due to maintenance.');
     }
 }

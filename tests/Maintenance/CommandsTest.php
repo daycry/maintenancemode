@@ -42,7 +42,7 @@ final class CommandsTest extends TestCase
     {
         command('mm:down -message "' . $this->message . '" -ip ' . $this->ip);
 
-        $this->assertStringContainsString('Application is already DOWN', $this->getStreamFilterBuffer());
+        $this->assertStringContainsString('Application is already in maintenance mode', $this->getStreamFilterBuffer());
     }
 
     public function testCommandCheckStatusDown()
