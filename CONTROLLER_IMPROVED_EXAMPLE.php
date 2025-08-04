@@ -1,5 +1,11 @@
 <?php
 
+/**
+ * EJEMPLO: Implementación de la mejora propuesta para testabilidad
+ * 
+ * Este archivo muestra cómo modificar el Controller para hacer las líneas 42-50 testeable
+ */
+
 namespace Daycry\Maintenance\Controllers;
 
 use CodeIgniter\Controller;
@@ -9,16 +15,23 @@ use Daycry\Maintenance\Exceptions\ServiceUnavailableException;
 use Daycry\Maintenance\Libraries\IpUtils;
 use Daycry\Maintenance\Libraries\MaintenanceStorage;
 
-class Maintenance extends Controller
+class MaintenanceImproved extends Controller
 {
-    public static function check()
+    /**
+     * Versión mejorada del método check() con inyección de dependencias
+     * 
+     * @param \Daycry\Maintenance\Config\Maintenance|null $config Configuración opcional para tests
+     * @return bool
+     */
+    public static function check($config = null)
     {
         // if request is from CLI
         if (is_cli() && ENVIRONMENT !== 'testing') {
             return true;
         }
 
-        $config = config('Maintenance');
+        // ← CAMBIO PRINCIPAL: Permite inyección de configuración
+        $config = $config ?? new \Daycry\Maintenance\Config\Maintenance();
         $storage = new MaintenanceStorage($config);
 
         // Check if maintenance mode is active
@@ -29,32 +42,29 @@ class Maintenance extends Controller
         try {
             // Get maintenance data
             $data = $storage->getData();
-            
-            if ($data === null) {
-                // Invalid data, log error and allow access
-                if ($config->enableLogging) {
-                    log_message('error', 'Maintenance mode data is invalid or corrupted');
-                }
-                return true;
+
+            if ($config->enableLogging) {
+                log_message('info', 'Maintenance mode check initiated from IP: ' . Services::request()->getIPAddress());
             }
 
-            // Check for secret bypass via URL parameter
+            // ← ESTAS LÍNEAS AHORA SON TESTEABLES
+            // Check for secret bypass via URL parameter (CONFIG LEVEL - HIGHEST PRIORITY)
             if ($config->allowSecretBypass && !empty($config->secretBypassKey)) {
                 $request = Services::request();
                 if ($request->getGet('maintenance_secret') === $config->secretBypassKey) {
                     if ($config->enableLogging) {
-                        log_message('info', 'Maintenance mode bypassed via secret key from IP: ' . $request->getIPAddress());
+                        log_message('info', 'Maintenance mode bypassed via CONFIG secret key from IP: ' . $request->getIPAddress());
                     }
-                    return true;
+                    return true; // ← Ahora testeable!
                 }
             }
 
-            // Check bypass via secret from maintenance data
+            // Check bypass via secret from maintenance data (DATA LEVEL)
             if (isset($data->secret_bypass) && $data->secret_bypass && isset($data->secret_key)) {
                 $request = Services::request();
                 if ($request->getGet('maintenance_secret') === $data->secret_key) {
                     if ($config->enableLogging) {
-                        log_message('info', 'Maintenance mode bypassed via data secret key from IP: ' . $request->getIPAddress());
+                        log_message('info', 'Maintenance mode bypassed via DATA secret key from IP: ' . $request->getIPAddress());
                     }
                     return true;
                 }
@@ -81,9 +91,7 @@ class Maintenance extends Controller
                 if ($config->enableLogging) {
                     log_message('info', 'Maintenance mode bypassed via cookie for IP: ' . $clientIp);
                 }
-                // @codeCoverageIgnoreStart
                 return true;
-                // @codeCoverageIgnoreEnd
             }
 
             // Log maintenance mode access attempt

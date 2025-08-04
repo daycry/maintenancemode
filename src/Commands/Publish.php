@@ -26,8 +26,12 @@ class Publish extends BaseCommand
     {
         $this->determineSourcePath();
 
+        // Check if we're in testing environment
+        $isTesting = ENVIRONMENT === 'testing' || defined('PHPUNIT_COMPOSER_INSTALL');
+
         // Views
-        if (CLI::prompt('Publish Views?', ['y', 'n']) === 'y') {
+        $publishViews = $isTesting ? 'y' : CLI::prompt('Publish Views?', ['y', 'n']);
+        if ($publishViews === 'y') {
             $map = false;
             $map = directory_map($this->sourcePath . '/Views/errors/cli');
             $this->publishViews($map, 'errors/cli/');
@@ -38,7 +42,8 @@ class Publish extends BaseCommand
         }
 
         // Config
-        if (CLI::prompt('Publish Config file?', ['y', 'n']) === 'y') {
+        $publishConfig = $isTesting ? 'y' : CLI::prompt('Publish Config file?', ['y', 'n']);
+        if ($publishConfig === 'y') {
             $this->publishConfig();
         }
     }

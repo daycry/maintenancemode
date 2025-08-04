@@ -4,6 +4,7 @@ namespace Daycry\Maintenance\Commands;
 
 use CodeIgniter\CLI\BaseCommand;
 use CodeIgniter\CLI\CLI;
+use Daycry\Maintenance\Libraries\MaintenanceStorage;
 
 class Up extends BaseCommand
 {
@@ -18,25 +19,25 @@ class Up extends BaseCommand
     {
         helper('setting');
         
-        // Load configuration
-        $maintenanceConfig = new \Daycry\Maintenance\Config\Maintenance();
-        $maintenanceFile = setting('Maintenance.filePath') . setting('Maintenance.fileName');
+        // Load configuration and storage
+        $maintenanceConfig = config('Maintenance');
+        $storage = new MaintenanceStorage($maintenanceConfig);
         
-        if (!file_exists($maintenanceFile)) {
+        if (!$storage->isActive()) {
             CLI::newLine(1);
             CLI::write('**** Application is already live. ****', 'green');
             CLI::newLine(1);
             return;
         }
         
-        // Log the event before deleting the file
+        // Log the event before removing data
         if ($maintenanceConfig->enableLogging) {
             log_message('info', 'Maintenance mode deactivated by CLI command');
         }
         
-        // Delete the maintenance file
-        if (!@unlink($maintenanceFile)) {
-            CLI::error('Failed to remove maintenance mode file. Please check file permissions.');
+        // Remove maintenance data
+        if (!$storage->remove()) {
+            CLI::error('Failed to remove maintenance mode data. Please check permissions.');
             return;
         }
 

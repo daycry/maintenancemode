@@ -4,7 +4,70 @@
 
 Esta documentación describe las mejoras implementadas en la librería de maintenance mode para CodeIgniter 4, manteniendo la compatibilidad total con la estructura existente.
 
-## 1. 🔧 Correcciones Menores
+## 🎯 NUEVA CARACTERÍSTICA PRINCIPAL: Sistema de Caché
+
+### 💾 Almacenamiento Inteligente
+La librería ahora soporta **dos métodos de almacenamiento**:
+
+1. **🔥 Sistema de Caché (RECOMENDADO)**: Usa el sistema de caché nativo de CodeIgniter 4
+2. **📁 Sistema de Archivos (Legacy)**: Mantiene compatibilidad con versiones anteriores
+
+#### Ventajas del Sistema de Caché:
+- ⚡ **Mucho más rápido** que el acceso a archivos
+- 🔒 **Sin problemas de permisos** de archivos
+- 🏗️ **Escalable** en entornos distribuidos
+- 💾 **Múltiples drivers** (Redis, Memcached, File, etc.)
+- 🔄 **Auto-expiración** configurable
+
+### 📋 Nueva Configuración de Caché
+
+```php
+// Nuevas opciones en src/Config/Maintenance.php:
+public bool $useCache = true;                    // Usar caché en lugar de archivos
+public string $cacheKey = 'maintenance_mode_data'; // Clave del caché
+public int $cacheTTL = 0;                        // TTL en segundos (0 = sin expirar)
+public ?string $cacheHandler = null;            // Handler específico (null = default)
+```
+
+### 🛠️ Nueva Clase: MaintenanceStorage
+
+**Archivo**: `src/Libraries/MaintenanceStorage.php`
+
+Abstrae completamente el almacenamiento:
+```php
+$storage = new MaintenanceStorage($config);
+
+// Métodos disponibles:
+$storage->isActive();           // Verificar si está en mantenimiento
+$storage->getData();            // Obtener datos de mantenimiento  
+$storage->save($data);          // Guardar datos
+$storage->remove();             // Eliminar datos
+$storage->clearAll();           // Limpiar cache y archivos
+$storage->migrateToCache();     // Migrar de archivos a caché
+```
+
+### 🔄 Comando de Migración
+
+**Nuevo comando**: `mm:migrate`
+
+```bash
+# Migrar datos de archivos a caché
+php spark mm:migrate
+
+# Limpiar todos los datos (cache y archivos)
+php spark mm:migrate --clear
+
+# Forzar migración aunque cache esté deshabilitado
+php spark mm:migrate --force
+```
+
+#### Funcionalidades del Comando:
+- 📦 **Migración automática** de archivos a caché
+- 🧹 **Limpieza completa** de datos
+- ✅ **Validación** de configuración
+- 📊 **Información** de estado actual
+
+## 1. 🔧 Correcciones Menores (COMPLETADO)
 
 ### Corrección de Typos
 - **Archivo afectado**: `src/Controllers/Maintenance.php`, `src/Exceptions/ServiceUnavailableException.php`

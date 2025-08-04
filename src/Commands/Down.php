@@ -4,6 +4,7 @@ namespace Daycry\Maintenance\Commands;
 
 use CodeIgniter\CLI\BaseCommand;
 use CodeIgniter\CLI\CLI;
+use Daycry\Maintenance\Libraries\MaintenanceStorage;
 
 class Down extends BaseCommand
 {
@@ -16,17 +17,19 @@ class Down extends BaseCommand
         '-message' => 'Set maintenance message', 
         '-ip' => 'Allowed IPs [example: 127.0.0.1 192.168.1.100]',
         '-duration' => 'Estimated duration in minutes',
-        '-secret' => 'Enable secret bypass with custom key'
+        '-secret' => 'Enable secret bypass with custom key',
+        '-cookie' => 'Set custom cookie name for bypass'
     ];
 
     public function run(array $params)
     {
         helper(['setting', 'text']);
         
-        // Load configuration
-        $maintenanceConfig = new \Daycry\Maintenance\Config\Maintenance();
+        // Load configuration and storage
+        $maintenanceConfig = config('Maintenance');
+        $storage = new MaintenanceStorage($maintenanceConfig);
 
-        if (file_exists(setting('Maintenance.filePath') . setting('Maintenance.fileName'))) {
+        if ($storage->isActive()) {
             CLI::newLine(1);
             CLI::error('**** Application is already in maintenance mode. ****');
             CLI::newLine(1);
@@ -34,16 +37,27 @@ class Down extends BaseCommand
             return;
         }
 
+        // Check if we're in testing environment
+        $isTesting = ENVIRONMENT === 'testing' || defined('PHPUNIT_COMPOSER_INSTALL');
+
         // Get message
         $message = $params['message'] ?? CLI::getOption('message');
         if (empty($message)) {
-            $message = CLI::prompt('Maintenance message', $maintenanceConfig->defaultMessage);
+            if ($isTesting) {
+                $message = $maintenanceConfig->defaultMessage;
+            } else {
+                $message = CLI::prompt('Maintenance message', $maintenanceConfig->defaultMessage);
+            }
         }
 
         // Get allowed IPs
         $ips_str = $params['ip'] ?? CLI::getOption('ip');
         if (empty($ips_str)) {
-            $ips_str = CLI::prompt('Allowed IPs [space-separated, e.g: 127.0.0.1 192.168.1.100]', '127.0.0.1');
+            if ($isTesting) {
+                $ips_str = '127.0.0.1';
+            } else {
+                $ips_str = CLI::prompt('Allowed IPs [space-separated, e.g: 127.0.0.1 192.168.1.100]', '127.0.0.1');
+            }
         }
 
         // Validate and process IPs
@@ -51,7 +65,16 @@ class Down extends BaseCommand
         $validIps = [];
         
         foreach ($ips_array as $ip) {
-            if (filter_var($ip, FILTER_VALIDATE_IP)) {
+            // Check for CIDR notation
+            if (strpos($ip, '/') !== false) {
+                // CIDR notation - validate the IP part before the slash
+                $parts = explode('/', $ip);
+                if (count($parts) === 2 && filter_var($parts[0], FILTER_VALIDATE_IP) && is_numeric($parts[1])) {
+                    $validIps[] = $ip;
+                } else {
+                    CLI::write("Warning: '{$ip}' is not a valid IP address and will be ignored.", 'yellow');
+                }
+            } elseif (filter_var($ip, FILTER_VALIDATE_IP)) {
                 $validIps[] = $ip;
             } else {
                 CLI::write("Warning: '{$ip}' is not a valid IP address and will be ignored.", 'yellow');
@@ -66,7 +89,11 @@ class Down extends BaseCommand
         // Get duration
         $duration = $params['duration'] ?? CLI::getOption('duration');
         if (empty($duration)) {
-            $duration = CLI::prompt('Estimated duration in minutes', (string) $maintenanceConfig->defaultDurationMinutes);
+            if ($isTesting) {
+                $duration = (string) $maintenanceConfig->defaultDurationMinutes;
+            } else {
+                $duration = CLI::prompt('Estimated duration in minutes', (string) $maintenanceConfig->defaultDurationMinutes);
+            }
         }
         $duration = (int) $duration;
 
@@ -78,9 +105,15 @@ class Down extends BaseCommand
         if (!empty($secret)) {
             $enableSecret = true;
             $secretKey = $secret;
-        } elseif (CLI::prompt('Enable secret bypass? (y/n)', 'n') === 'y') {
+        } elseif (!$isTesting && CLI::prompt('Enable secret bypass? (y/n)', 'n') === 'y') {
             $enableSecret = true;
             $secretKey = CLI::prompt('Secret bypass key', random_string('alnum', 16));
+        }
+
+        // Get cookie name
+        $cookieName = $params['cookie'] ?? CLI::getOption('cookie');
+        if (empty($cookieName)) {
+            $cookieName = random_string('alnum', 8);
         }
 
         // Create directory if it doesn't exist
@@ -95,7 +128,7 @@ class Down extends BaseCommand
         $maintenanceData = [
             'time'        => time(),
             'message'     => $message,
-            'cookie_name' => random_string('alnum', 8),
+            'cookie_name' => $cookieName,
             'allowed_ips' => $validIps,
             'duration_minutes' => $duration,
             'estimated_end' => time() + ($duration * 60),
@@ -103,14 +136,11 @@ class Down extends BaseCommand
             'secret_key' => $secretKey,
         ];
 
-        // Write maintenance file
-        $success = file_put_contents(
-            setting('Maintenance.filePath') . setting('Maintenance.fileName'),
-            json_encode($maintenanceData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)
-        );
+        // Save maintenance data using storage system
+        $success = $storage->save($maintenanceData);
 
-        if ($success === false) {
-            CLI::error('Failed to create maintenance mode file.');
+        if (!$success) {
+            CLI::error('Failed to save maintenance mode data.');
             return;
         }
 

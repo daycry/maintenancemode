@@ -11,14 +11,38 @@ class Maintenance extends BaseConfig
     // --------------------------------------------------------------------
     
     /**
-     * Path where the maintenance mode file will be stored
+     * Path where the maintenance mode file will be stored (legacy support)
      */
     public string $filePath = WRITEPATH . 'maintenance/';
     
     /**
-     * Name of the maintenance mode file
+     * Name of the maintenance mode file (legacy support)
      */
     public string $fileName = 'down';
+    
+    // --------------------------------------------------------------------
+    // Cache configuration options
+    // --------------------------------------------------------------------
+    
+    /**
+     * Use cache instead of file storage for maintenance data
+     */
+    public bool $useCache = true;
+    
+    /**
+     * Cache key for maintenance mode data
+     */
+    public string $cacheKey = 'maintenance_mode_data';
+    
+    /**
+     * Cache TTL in seconds (0 = no expiration)
+     */
+    public int $cacheTTL = 0;
+    
+    /**
+     * Cache handler to use (null = default)
+     */
+    public ?string $cacheHandler = null;
     
     // --------------------------------------------------------------------
     // Advanced configuration options
