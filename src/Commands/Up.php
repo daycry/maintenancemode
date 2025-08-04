@@ -18,26 +18,28 @@ class Up extends BaseCommand
     public function run(array $params)
     {
         helper('setting');
-        
+
         // Load configuration and storage
         $maintenanceConfig = config('Maintenance');
-        $storage = new MaintenanceStorage($maintenanceConfig);
-        
-        if (!$storage->isActive()) {
+        $storage           = new MaintenanceStorage($maintenanceConfig);
+
+        if (! $storage->isActive()) {
             CLI::newLine(1);
             CLI::write('**** Application is already live. ****', 'green');
             CLI::newLine(1);
+
             return;
         }
-        
+
         // Log the event before removing data
         if ($maintenanceConfig->enableLogging) {
             log_message('info', 'Maintenance mode deactivated by CLI command');
         }
-        
+
         // Remove maintenance data
-        if (!$storage->remove()) {
+        if (! $storage->remove()) {
             CLI::error('Failed to remove maintenance mode data. Please check permissions.');
+
             return;
         }
 

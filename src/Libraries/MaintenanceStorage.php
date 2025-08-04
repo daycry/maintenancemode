@@ -14,11 +14,10 @@ class MaintenanceStorage
     public function __construct(?MaintenanceConfig $config = null)
     {
         $this->config = $config ?? new MaintenanceConfig();
-        
+
         if ($this->config->useCache) {
-            $this->cache = $this->config->cacheHandler 
-                ? Services::cache($this->config->cacheHandler) 
-                : Services::cache();
+            // Get cache service with default configuration
+            $this->cache = Services::cache();
         }
     }
 
@@ -33,6 +32,7 @@ class MaintenanceStorage
 
         // Fallback to file system
         helper('setting');
+
         return file_exists(setting('Maintenance.filePath') . setting('Maintenance.fileName'));
     }
 
@@ -43,18 +43,20 @@ class MaintenanceStorage
     {
         if ($this->config->useCache) {
             $data = $this->cache->get($this->config->cacheKey);
+
             return $data ? (object) $data : null;
         }
 
         // Fallback to file system
         helper('setting');
         $filePath = setting('Maintenance.filePath') . setting('Maintenance.fileName');
-        
-        if (!file_exists($filePath)) {
+
+        if (! file_exists($filePath)) {
             return null;
         }
 
         $content = file_get_contents($filePath);
+
         return $content ? json_decode($content) : null;
     }
 
@@ -65,9 +67,9 @@ class MaintenanceStorage
     {
         if ($this->config->useCache) {
             $success = $this->cache->save(
-                $this->config->cacheKey, 
-                $data, 
-                $this->config->cacheTTL
+                $this->config->cacheKey,
+                $data,
+                $this->config->cacheTTL,
             );
 
             if ($success && $this->config->enableLogging) {
@@ -80,26 +82,27 @@ class MaintenanceStorage
         // Fallback to file system
         helper('setting');
         $filePath = setting('Maintenance.filePath');
-        
+
         // Create directory if it doesn't exist
-        if (!is_dir($filePath)) {
-            if (!mkdir($filePath, 0755, true)) {
+        if (! is_dir($filePath)) {
+            if (! mkdir($filePath, 0755, true)) {
                 if ($this->config->enableLogging) {
                     log_message('error', 'Failed to create maintenance directory: ' . $filePath);
                 }
+
                 return false;
             }
         }
 
         $fullPath = $filePath . setting('Maintenance.fileName');
-        $success = file_put_contents(
+        $success  = file_put_contents(
             $fullPath,
-            json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)
+            json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE),
         ) !== false;
 
         if ($success && $this->config->enableLogging) {
             log_message('info', 'Maintenance mode data saved to file: ' . $fullPath);
-        } elseif (!$success && $this->config->enableLogging) {
+        } elseif (! $success && $this->config->enableLogging) {
             log_message('error', 'Failed to save maintenance mode data to file: ' . $fullPath);
         }
 
@@ -124,8 +127,8 @@ class MaintenanceStorage
         // Fallback to file system
         helper('setting');
         $filePath = setting('Maintenance.filePath') . setting('Maintenance.fileName');
-        
-        if (!file_exists($filePath)) {
+
+        if (! file_exists($filePath)) {
             return true; // Already removed
         }
 
@@ -133,7 +136,7 @@ class MaintenanceStorage
 
         if ($success && $this->config->enableLogging) {
             log_message('info', 'Maintenance mode file removed: ' . $filePath);
-        } elseif (!$success && $this->config->enableLogging) {
+        } elseif (! $success && $this->config->enableLogging) {
             log_message('error', 'Failed to remove maintenance mode file: ' . $filePath);
         }
 
@@ -146,7 +149,7 @@ class MaintenanceStorage
     public function clearAll(): bool
     {
         $cacheCleared = true;
-        $fileCleared = true;
+        $fileCleared  = true;
 
         // Clear cache
         if ($this->config->useCache) {
@@ -168,22 +171,22 @@ class MaintenanceStorage
      */
     public function migrateToCache(): bool
     {
-        if (!$this->config->useCache) {
+        if (! $this->config->useCache) {
             return false;
         }
 
         // Check if there's file data to migrate
         helper('setting');
         $filePath = setting('Maintenance.filePath') . setting('Maintenance.fileName');
-        
-        if (!file_exists($filePath)) {
+
+        if (! file_exists($filePath)) {
             return true; // Nothing to migrate
         }
 
         $content = file_get_contents($filePath);
-        $data = json_decode($content, true);
+        $data    = json_decode($content, true);
 
-        if (!$data) {
+        if (! $data) {
             return false; // Invalid data
         }
 
@@ -191,13 +194,13 @@ class MaintenanceStorage
         $success = $this->cache->save(
             $this->config->cacheKey,
             $data,
-            $this->config->cacheTTL
+            $this->config->cacheTTL,
         );
 
         if ($success) {
             // Remove old file
             @unlink($filePath);
-            
+
             if ($this->config->enableLogging) {
                 log_message('info', 'Maintenance mode data migrated from file to cache');
             }

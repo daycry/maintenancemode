@@ -4,6 +4,7 @@ namespace Daycry\Maintenance\Commands;
 
 use CodeIgniter\CLI\BaseCommand;
 use CodeIgniter\CLI\CLI;
+use Daycry\Maintenance\Config\Maintenance;
 use Daycry\Maintenance\Libraries\MaintenanceStorage;
 
 class Migrate extends BaseCommand
@@ -15,16 +16,16 @@ class Migrate extends BaseCommand
     protected $arguments   = [];
     protected $options     = [
         '-force' => 'Force migration even if cache is disabled',
-        '-clear' => 'Clear all maintenance data (both cache and files)'
+        '-clear' => 'Clear all maintenance data (both cache and files)',
     ];
 
     public function run(array $params)
     {
         helper('setting');
-        
+
         // Load configuration and storage
-        $maintenanceConfig = new \Daycry\Maintenance\Config\Maintenance();
-        $storage = new MaintenanceStorage($maintenanceConfig);
+        $maintenanceConfig = new Maintenance();
+        $storage           = new MaintenanceStorage($maintenanceConfig);
 
         $force = $params['force'] ?? CLI::getOption('force') ?? false;
         $clear = $params['clear'] ?? CLI::getOption('clear') ?? false;
@@ -49,23 +50,26 @@ class Migrate extends BaseCommand
                 CLI::write('Operation cancelled.', 'yellow');
             }
             CLI::newLine(1);
+
             return;
         }
 
         // Check if cache is enabled
-        if (!$maintenanceConfig->useCache && !$force) {
+        if (! $maintenanceConfig->useCache && ! $force) {
             CLI::error('❌ Cache storage is disabled in configuration.');
             CLI::write('Use --force flag to proceed anyway or enable cache in configuration.', 'yellow');
             CLI::newLine(1);
+
             return;
         }
 
         // Check if there's file data to migrate
         $filePath = setting('Maintenance.filePath') . setting('Maintenance.fileName');
-        
-        if (!file_exists($filePath)) {
+
+        if (! file_exists($filePath)) {
             CLI::write('ℹ️  No file data found to migrate.', 'cyan');
             CLI::newLine(1);
+
             return;
         }
 
@@ -77,7 +81,7 @@ class Migrate extends BaseCommand
 
         // Perform migration
         CLI::write('Starting migration...', 'yellow');
-        
+
         if ($storage->migrateToCache()) {
             CLI::write('✅ Migration completed successfully!', 'green');
             CLI::write('  ✓ Data migrated from file to cache', 'green');

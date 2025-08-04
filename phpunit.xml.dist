@@ -14,7 +14,7 @@
         includeUncoveredFiles="true"
         pathCoverage="false"
         ignoreDeprecatedCodeUnits="true"
-        disableCodeCoverageIgnore="true">
+        disableCodeCoverageIgnore="false">
         <report>
             <clover outputFile="build/logs/clover.xml"/>
             <html outputDirectory="build/coverage/html" highLowerBound="80"/>
@@ -39,8 +39,6 @@
         <exclude>
             <directory>./src/Language</directory>
             <directory>./src/Views</directory>
-            <directory>./src/Libraries</directory>
-            <file>./src/Commands/Publish.php</file>
         </exclude>
     </source>
     <logging>

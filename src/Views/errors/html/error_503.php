@@ -215,15 +215,15 @@
 		.maintenance-header {
 			padding: 1.5rem;
 		}
-		
+
 		.maintenance-content {
 			padding: 1.5rem;
 		}
-		
+
 		.maintenance-header h1 {
 			font-size: 1.5rem;
 		}
-		
+
 		.maintenance-features {
 			grid-template-columns: 1fr;
 		}
@@ -234,7 +234,7 @@
 		.pulse {
 			animation: none;
 		}
-		
+
 		.refresh-btn:hover {
 			transform: none;
 		}

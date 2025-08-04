@@ -2,11 +2,12 @@
 
 namespace Tests\Maintenance;
 
-use Tests\Support\TestCase;
 use CodeIgniter\Config\Factories;
 use Daycry\Maintenance\Config\Maintenance;
 use Daycry\Maintenance\Controllers\Maintenance as MaintenanceController;
+use Daycry\Maintenance\Exceptions\ServiceUnavailableException;
 use Daycry\Maintenance\Libraries\MaintenanceStorage;
+use Tests\Support\TestCase;
 
 /**
  * @internal
@@ -31,24 +32,24 @@ final class BypassTest extends TestCase
     private function createCustomConfig(array $overrides = []): Maintenance
     {
         $config = new Maintenance();
-        
+
         // Safe test defaults
-        $config->enableLogging = false;
-        $config->retryAfterSeconds = 3600;
-        $config->defaultMessage = 'Application is in maintenance mode';
-        $config->allowSecretBypass = false;
-        $config->secretBypassKey = '';
+        $config->enableLogging      = false;
+        $config->retryAfterSeconds  = 3600;
+        $config->defaultMessage     = 'Application is in maintenance mode';
+        $config->allowSecretBypass  = false;
+        $config->secretBypassKey    = '';
         $config->allowedIpAddresses = [];
-        $config->allowCookieBypass = false;
-        $config->cookieName = 'maintenance_bypass';
-        $config->storage = 'file';
-        $config->filePath = WRITEPATH . 'maintenance/';
-        
+        $config->allowCookieBypass  = false;
+        $config->cookieName         = 'maintenance_bypass';
+        $config->storage            = 'file';
+        $config->filePath           = WRITEPATH . 'maintenance/';
+
         // Apply overrides
         foreach ($overrides as $property => $value) {
-            $config->$property = $value;
+            $config->{$property} = $value;
         }
-        
+
         return $config;
     }
 
@@ -57,6 +58,7 @@ final class BypassTest extends TestCase
         $maintenanceDir = WRITEPATH . 'maintenance/';
         if (is_dir($maintenanceDir)) {
             $files = glob($maintenanceDir . '*');
+
             foreach ($files as $file) {
                 if (is_file($file)) {
                     unlink($file);
@@ -72,23 +74,23 @@ final class BypassTest extends TestCase
         // Test using commands with secret bypass
         $config = $this->createCustomConfig([
             'allowSecretBypass' => true,
-            'secretBypassKey' => 'config-secret-123'
+            'secretBypassKey'   => 'config-secret-123',
         ]);
         Factories::injectMock('config', 'Maintenance', $config);
-        
+
         // Put app in maintenance with secret
         command('mm:down -message "Secret test" -secret "data-secret-456"');
-        
+
         // Check that maintenance is active
         $storage = new MaintenanceStorage($config);
         $this->assertTrue($storage->isActive());
-        
+
         // Verify data has the secret
         $data = $storage->getData();
         $this->assertNotNull($data);
         $this->assertTrue($data->secret_bypass);
-        $this->assertEquals('data-secret-456', $data->secret_key);
-        
+        $this->assertSame('data-secret-456', $data->secret_key);
+
         command('mm:up');
     }
 
@@ -96,21 +98,21 @@ final class BypassTest extends TestCase
     {
         $config = $this->createCustomConfig([
             'allowSecretBypass' => true,
-            'secretBypassKey' => 'test-secret-key'
+            'secretBypassKey'   => 'test-secret-key',
         ]);
         Factories::injectMock('config', 'Maintenance', $config);
-        
+
         // Put app in maintenance
         command('mm:down -message "Test with secret" -secret "bypass-key"');
-        
+
         $storage = new MaintenanceStorage($config);
         $this->assertTrue($storage->isActive());
-        
+
         // Test the secret bypass via static method
         $_GET['maintenance_secret'] = 'test-secret-key';
-        $result = MaintenanceController::check();
+        $result                     = MaintenanceController::check();
         $this->assertTrue($result); // Should be bypassed
-        
+
         unset($_GET['maintenance_secret']);
         command('mm:up');
     }
@@ -120,21 +122,21 @@ final class BypassTest extends TestCase
     public function testIpBypassWithMultipleIPs(): void
     {
         $config = $this->createCustomConfig([
-            'allowedIpAddresses' => ['127.0.0.1', '192.168.1.100']
+            'allowedIpAddresses' => ['127.0.0.1', '192.168.1.100'],
         ]);
         Factories::injectMock('config', 'Maintenance', $config);
-        
+
         // Test down command with multiple IPs
         command('mm:down -message "IP test" -ip "127.0.0.1 192.168.1.100"');
-        
+
         $storage = new MaintenanceStorage($config);
         $this->assertTrue($storage->isActive());
-        
+
         $data = $storage->getData();
         $this->assertNotNull($data);
         $this->assertContains('127.0.0.1', $data->allowed_ips);
         $this->assertContains('192.168.1.100', $data->allowed_ips);
-        
+
         command('mm:up');
     }
 
@@ -142,17 +144,17 @@ final class BypassTest extends TestCase
     {
         $config = $this->createCustomConfig();
         Factories::injectMock('config', 'Maintenance', $config);
-        
+
         // Test CIDR notation
         command('mm:down -message "CIDR test" -ip "192.168.1.0/24"');
-        
+
         $storage = new MaintenanceStorage($config);
         $this->assertTrue($storage->isActive());
-        
+
         $data = $storage->getData();
         $this->assertNotNull($data);
         $this->assertContains('192.168.1.0/24', $data->allowed_ips);
-        
+
         command('mm:up');
     }
 
@@ -162,20 +164,20 @@ final class BypassTest extends TestCase
     {
         $config = $this->createCustomConfig([
             'allowCookieBypass' => true,
-            'cookieName' => 'test_bypass_cookie'
+            'cookieName'        => 'test_bypass_cookie',
         ]);
         Factories::injectMock('config', 'Maintenance', $config);
-        
+
         // Down command should work with cookie parameter
         command('mm:down -message "Cookie test" -cookie "test_cookie"');
-        
+
         $storage = new MaintenanceStorage($config);
         $this->assertTrue($storage->isActive());
-        
+
         $data = $storage->getData();
         $this->assertNotNull($data);
-        $this->assertEquals('test_cookie', $data->cookie_name);
-        
+        $this->assertSame('test_cookie', $data->cookie_name);
+
         command('mm:up');
     }
 
@@ -185,31 +187,31 @@ final class BypassTest extends TestCase
     {
         $config = $this->createCustomConfig([
             'allowSecretBypass' => true,
-            'secretBypassKey' => 'master-secret',
-            'allowCookieBypass' => true
+            'secretBypassKey'   => 'master-secret',
+            'allowCookieBypass' => true,
         ]);
         Factories::injectMock('config', 'Maintenance', $config);
-        
+
         // Complete workflow test
         command('mm:down -message "Complete test" -ip "127.0.0.1" -secret "data-secret" -cookie "bypass_cookie"');
-        
+
         $storage = new MaintenanceStorage($config);
         $this->assertTrue($storage->isActive());
-        
+
         // Check status
         command('mm:status');
         // Just verify that maintenance is still active after status command
         $this->assertTrue($storage->isActive());
-        
+
         // Verify data structure
         $data = $storage->getData();
         $this->assertNotNull($data);
-        $this->assertEquals('Complete test', $data->message);
+        $this->assertSame('Complete test', $data->message);
         $this->assertContains('127.0.0.1', $data->allowed_ips);
         $this->assertTrue($data->secret_bypass);
-        $this->assertEquals('data-secret', $data->secret_key);
-        $this->assertEquals('bypass_cookie', $data->cookie_name);
-        
+        $this->assertSame('data-secret', $data->secret_key);
+        $this->assertSame('bypass_cookie', $data->cookie_name);
+
         command('mm:up');
         $this->assertFalse($storage->isActive());
     }
@@ -218,20 +220,20 @@ final class BypassTest extends TestCase
     {
         // Test with file storage
         $config = $this->createCustomConfig([
-            'storage' => 'file',
-            'allowSecretBypass' => true
+            'storage'           => 'file',
+            'allowSecretBypass' => true,
         ]);
         Factories::injectMock('config', 'Maintenance', $config);
-        
+
         command('mm:down -message "File storage test" -secret "file-secret"');
-        
+
         $storage = new MaintenanceStorage($config);
         $this->assertTrue($storage->isActive());
-        
+
         $data = $storage->getData();
         $this->assertNotNull($data);
         $this->assertTrue($data->secret_bypass);
-        
+
         command('mm:up');
         $this->assertFalse($storage->isActive());
     }
@@ -242,17 +244,17 @@ final class BypassTest extends TestCase
     {
         $config = $this->createCustomConfig();
         Factories::injectMock('config', 'Maintenance', $config);
-        
+
         // Test with invalid IP format - should handle gracefully
         command('mm:down -message "Invalid IP test" -ip "invalid.ip.format 999.999.999.999"');
-        
+
         $storage = new MaintenanceStorage($config);
         $this->assertTrue($storage->isActive());
-        
+
         // Should still have maintenance active but with default IPs
         $data = $storage->getData();
         $this->assertNotNull($data);
-        
+
         command('mm:up');
     }
 
@@ -260,16 +262,16 @@ final class BypassTest extends TestCase
     {
         $config = $this->createCustomConfig([
             'allowSecretBypass' => true,
-            'secretBypassKey' => ''
+            'secretBypassKey'   => '',
         ]);
         Factories::injectMock('config', 'Maintenance', $config);
-        
+
         // Test with empty secret - should work
         command('mm:down -message "Empty secret test" -secret ""');
-        
+
         $storage = new MaintenanceStorage($config);
         $this->assertTrue($storage->isActive());
-        
+
         command('mm:up');
     }
 
@@ -277,22 +279,22 @@ final class BypassTest extends TestCase
     {
         $config = $this->createCustomConfig();
         Factories::injectMock('config', 'Maintenance', $config);
-        
+
         // Test when maintenance is not active
         $result = MaintenanceController::check();
         $this->assertTrue($result); // Should allow access
-        
-        // Put in maintenance mode
-        command('mm:down -message "Static method test"');
-        
+
+        // Put in maintenance mode with a different IP to ensure no bypass
+        command('mm:down -message "Static method test" -ip "192.168.1.100"');
+
         // Test when maintenance is active
         try {
             $result = MaintenanceController::check();
             $this->fail('Should have thrown ServiceUnavailableException');
-        } catch (\Daycry\Maintenance\Exceptions\ServiceUnavailableException $e) {
+        } catch (ServiceUnavailableException $e) {
             $this->assertStringContainsString('Static method test', $e->getMessage());
         }
-        
+
         command('mm:up');
     }
 }

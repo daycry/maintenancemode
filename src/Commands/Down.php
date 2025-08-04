@@ -14,26 +14,27 @@ class Down extends BaseCommand
     protected $usage       = 'mm:down [Options]';
     protected $arguments   = [];
     protected $options     = [
-        '-message' => 'Set maintenance message', 
-        '-ip' => 'Allowed IPs [example: 127.0.0.1 192.168.1.100]',
+        '-message'  => 'Set maintenance message',
+        '-ip'       => 'Allowed IPs [example: 127.0.0.1 192.168.1.100]',
         '-duration' => 'Estimated duration in minutes',
-        '-secret' => 'Enable secret bypass with custom key',
-        '-cookie' => 'Set custom cookie name for bypass'
+        '-secret'   => 'Enable secret bypass with custom key',
+        '-cookie'   => 'Set custom cookie name for bypass',
     ];
 
     public function run(array $params)
     {
         helper(['setting', 'text']);
-        
+
         // Load configuration and storage
         $maintenanceConfig = config('Maintenance');
-        $storage = new MaintenanceStorage($maintenanceConfig);
+        $storage           = new MaintenanceStorage($maintenanceConfig);
 
         if ($storage->isActive()) {
             CLI::newLine(1);
             CLI::error('**** Application is already in maintenance mode. ****');
             CLI::newLine(1);
             $this->call('mm:status');
+
             return;
         }
 
@@ -62,11 +63,11 @@ class Down extends BaseCommand
 
         // Validate and process IPs
         $ips_array = array_filter(array_map('trim', explode(' ', $ips_str)));
-        $validIps = [];
-        
+        $validIps  = [];
+
         foreach ($ips_array as $ip) {
             // Check for CIDR notation
-            if (strpos($ip, '/') !== false) {
+            if (str_contains($ip, '/')) {
                 // CIDR notation - validate the IP part before the slash
                 $parts = explode('/', $ip);
                 if (count($parts) === 2 && filter_var($parts[0], FILTER_VALIDATE_IP) && is_numeric($parts[1])) {
@@ -98,16 +99,16 @@ class Down extends BaseCommand
         $duration = (int) $duration;
 
         // Get secret bypass
-        $secret = $params['secret'] ?? CLI::getOption('secret');
+        $secret       = $params['secret'] ?? CLI::getOption('secret');
         $enableSecret = false;
-        $secretKey = '';
-        
-        if (!empty($secret)) {
+        $secretKey    = '';
+
+        if (! empty($secret)) {
             $enableSecret = true;
-            $secretKey = $secret;
-        } elseif (!$isTesting && CLI::prompt('Enable secret bypass? (y/n)', 'n') === 'y') {
+            $secretKey    = $secret;
+        } elseif (! $isTesting && CLI::prompt('Enable secret bypass? (y/n)', 'n') === 'y') {
             $enableSecret = true;
-            $secretKey = CLI::prompt('Secret bypass key', random_string('alnum', 16));
+            $secretKey    = CLI::prompt('Secret bypass key', random_string('alnum', 16));
         }
 
         // Get cookie name
@@ -118,29 +119,31 @@ class Down extends BaseCommand
 
         // Create directory if it doesn't exist
         if (! is_dir(setting('Maintenance.filePath'))) {
-            if (!mkdir(setting('Maintenance.filePath'), 0755, true)) {
+            if (! mkdir(setting('Maintenance.filePath'), 0755, true)) {
                 CLI::error('Failed to create maintenance directory.');
+
                 return;
             }
         }
 
         // Prepare maintenance data
         $maintenanceData = [
-            'time'        => time(),
-            'message'     => $message,
-            'cookie_name' => $cookieName,
-            'allowed_ips' => $validIps,
+            'time'             => time(),
+            'message'          => $message,
+            'cookie_name'      => $cookieName,
+            'allowed_ips'      => $validIps,
             'duration_minutes' => $duration,
-            'estimated_end' => time() + ($duration * 60),
-            'secret_bypass' => $enableSecret,
-            'secret_key' => $secretKey,
+            'estimated_end'    => time() + ($duration * 60),
+            'secret_bypass'    => $enableSecret,
+            'secret_key'       => $secretKey,
         ];
 
         // Save maintenance data using storage system
         $success = $storage->save($maintenanceData);
 
-        if (!$success) {
+        if (! $success) {
             CLI::error('Failed to save maintenance mode data.');
+
             return;
         }
 
@@ -152,9 +155,9 @@ class Down extends BaseCommand
         CLI::newLine(1);
         CLI::write('**** Application is now in MAINTENANCE MODE ****', 'white', 'red');
         CLI::newLine(1);
-        
+
         if ($enableSecret) {
-            CLI::write("Secret bypass URL: " . base_url() . "?maintenance_secret={$secretKey}", 'yellow');
+            CLI::write('Secret bypass URL: ' . base_url() . "?maintenance_secret={$secretKey}", 'yellow');
             CLI::newLine(1);
         }
 

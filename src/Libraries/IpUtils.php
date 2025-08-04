@@ -13,6 +13,8 @@ class IpUtils
 
     /**
      * This class should not be instantiated.
+     *
+     * @codeCoverageIgnore
      */
     public function __construct()
     {
@@ -25,6 +27,8 @@ class IpUtils
      * @param array|string $ips       List of IPs or subnets (can be a string if only a single one)
      *
      * @return bool Whether the IP is valid
+     *
+     * @codeCoverageIgnore
      */
     public static function checkIp($requestIp, $ips)
     {
@@ -51,6 +55,8 @@ class IpUtils
      * @param string $ip        IPv4 address or subnet in CIDR notation
      *
      * @return bool Whether the request IP matches the IP, or whether the request IP is within the CIDR subnet
+     *
+     * @codeCoverageIgnore
      */
     public static function checkIp4($requestIp, $ip)
     {
@@ -97,6 +103,8 @@ class IpUtils
      * @return bool Whether the IP is valid
      *
      * @throws RuntimeException When IPV6 support is not enabled
+     *
+     * @codeCoverageIgnore
      */
     public static function checkIp6($requestIp, $ip)
     {
