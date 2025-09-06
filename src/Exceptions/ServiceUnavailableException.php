@@ -1,10 +1,10 @@
 <?php
-
 namespace Daycry\Maintenance\Exceptions;
 
+use CodeIgniter\Exceptions\HTTPExceptionInterface;
 use CodeIgniter\Exceptions\RuntimeException;
 
-class ServiceUnavailableException extends RuntimeException
+class ServiceUnavailableException extends RuntimeException implements HTTPExceptionInterface
 {
     /**
      * Error code
