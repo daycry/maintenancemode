@@ -121,7 +121,7 @@ This package treats the toolchain as part of the contract. Every push runs:
 | [PHPStan](.github/workflows/phpstan.yml) | PHPStan level 6 | Static types |
 | [Psalm](.github/workflows/psalm.yml) | Psalm error level 6 | Static types & dead code |
 | [Rector](.github/workflows/rector.yml) | Rector dry-run | Refactor drift |
-| [CodeQL](.github/workflows/codeql.yml) | GitHub CodeQL (Actions + JS/TS) | Supply-chain |
+| [CodeQL](.github/workflows/codeql.yml) | GitHub CodeQL (Actions) | Supply-chain (workflow injection, secret leaks) |
 
 Reproduce them locally with `composer ci`.
 

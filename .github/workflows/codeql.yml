@@ -1,11 +1,11 @@
 name: CodeQL
 
-# CodeQL does not currently analyse PHP, so this workflow scans the parts of
-# the repository CodeQL DOES understand:
-#   - GitHub Actions workflow files (catches action injection, secret leaks)
-#   - any JavaScript/TypeScript that may sneak in alongside views or tooling
-# The badge and SARIF integration with GHAS are still useful for a PHP-only
-# package, since most supply-chain risks for an OSS library live in CI.
+# CodeQL does not currently analyse PHP, so this workflow only scans the
+# GitHub Actions workflow files themselves (catches action injection, secret
+# leaks, mis-pinned versions, etc.). JavaScript/TypeScript is intentionally
+# NOT scanned because the repo ships zero JS — CodeQL fails the run with
+# "could not process any code written in JavaScript/TypeScript" when there
+# is no source to analyse.
 
 on:
   schedule:
@@ -29,7 +29,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: [ 'actions', 'javascript-typescript' ]
+        language: [ 'actions' ]
 
     steps:
       - uses: actions/checkout@v4
