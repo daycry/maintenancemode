@@ -1,0 +1,85 @@
+name: Bug report
+description: Report a problem with daycry/maintenancemode
+labels: ["bug", "needs-triage"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug report. Please fill in the sections below.
+        Security issues — see [SECURITY.md](https://github.com/daycry/maintenancemode/blob/master/SECURITY.md) and use private reporting.
+
+  - type: input
+    id: package-version
+    attributes:
+      label: Package version
+      placeholder: "v3.0.0"
+    validations:
+      required: true
+
+  - type: input
+    id: php-version
+    attributes:
+      label: PHP version
+      placeholder: "8.3.10"
+    validations:
+      required: true
+
+  - type: input
+    id: ci-version
+    attributes:
+      label: CodeIgniter version
+      placeholder: "4.5.4"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: storage
+    attributes:
+      label: Storage driver
+      options:
+        - file
+        - cache
+    validations:
+      required: true
+
+  - type: textarea
+    id: command
+    attributes:
+      label: Command run / request made
+      description: The exact `mm:*` command, or the HTTP request that triggers the bug.
+      render: shell
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behaviour
+      description: Include error messages and stack traces if you have them.
+    validations:
+      required: true
+
+  - type: textarea
+    id: config
+    attributes:
+      label: Relevant Config\Maintenance values
+      description: Only the fields relevant to the bug. Redact secrets.
+      render: php
+    validations:
+      required: false
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Additional context
+      description: Logs, screenshots, related issues, anything else.
+    validations:
+      required: false
