@@ -1,61 +1,80 @@
 {
     "name": "daycry/maintenancemode",
-    "description": "Maintenance mode for Codeigniter 4",
-    "keywords":
-    [
-        "maintenance"
+    "description": "Maintenance mode for CodeIgniter 4",
+    "keywords": [
+        "codeigniter4",
+        "maintenance",
+        "503",
+        "downtime"
     ],
     "homepage": "https://github.com/daycry/maintenancemode",
-    "authors":
-    [
+    "license": "MIT",
+    "authors": [
         {
             "name": "daycry",
             "homepage": "https://github.com/daycry",
             "role": "Developer"
         }
     ],
-    "license": "MIT",
+    "support": {
+        "issues": "https://github.com/daycry/maintenancemode/issues",
+        "source": "https://github.com/daycry/maintenancemode",
+        "docs":   "https://github.com/daycry/maintenancemode/tree/master/docs"
+    },
     "minimum-stability": "dev",
     "prefer-stable": true,
     "require": {
-      "php": ">=8.2",
+        "php": ">=8.2",
         "codeigniter4/settings": "^2.2"
     },
-    "require-dev":
-    {
+    "require-dev": {
         "codeigniter4/devkit": "^1",
         "codeigniter4/framework": "^4"
     },
     "autoload": {
         "psr-4": {
             "Daycry\\Maintenance\\": "src/"
-        }
+        },
+        "files": [
+            "src/Helpers/maintenance_helper.php"
+        ]
     },
-    "autoload-dev":
-    {
-        "psr-4":
-        {
+    "autoload-dev": {
+        "psr-4": {
             "Tests\\": "tests/",
             "Tests\\Support\\": "tests/_support/"
         }
     },
     "scripts": {
         "analyze": [
-            "phpstan analyze"
+            "phpstan analyze -c phpstan.neon.dist"
         ],
         "sa": "@analyze",
+        "psalm": [
+            "Composer\\Config::disableProcessTimeout",
+            "psalm --no-cache --show-info=false"
+        ],
+        "rector": [
+            "Composer\\Config::disableProcessTimeout",
+            "rector process --dry-run --no-progress-bar"
+        ],
+        "rector-fix": [
+            "Composer\\Config::disableProcessTimeout",
+            "rector process --no-progress-bar"
+        ],
         "ci": [
             "Composer\\Config::disableProcessTimeout",
             "@cs",
-            "@deduplicate",
             "@analyze",
+            "@psalm",
+            "@rector",
             "@test"
         ],
         "cs": [
             "Composer\\Config::disableProcessTimeout",
             "php-cs-fixer fix --ansi --verbose --dry-run --diff"
         ],
-        "cs-fix": [ 
+        "cs-fix": [
             "Composer\\Config::disableProcessTimeout",
             "php-cs-fixer fix --ansi --verbose --diff"
         ],

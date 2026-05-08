@@ -3,114 +3,135 @@
 namespace Daycry\Maintenance\Controllers;
 
 use CodeIgniter\Controller;
-use CodeIgniter\Exceptions\ExceptionInterface;
+use CodeIgniter\HTTP\IncomingRequest;
+use CodeIgniter\HTTP\ResponseInterface;
 use Config\Services;
+use Daycry\Maintenance\DTO\MaintenanceData;
 use Daycry\Maintenance\Exceptions\ServiceUnavailableException;
-use Daycry\Maintenance\Libraries\IpUtils;
-use Daycry\Maintenance\Libraries\MaintenanceStorage;
+use Daycry\Maintenance\Services\CheckResult;
+use Daycry\Maintenance\Services\MaintenanceService;
 
 class Maintenance extends Controller
 {
+    /**
+     * Static entry point used by the legacy filter (and by tests).
+     *
+     * Returns true when the request should be allowed through, or a
+     * {@see ResponseInterface} when the package wants to short-circuit with a
+     * redirect / JSON 503 response. Throws a
+     * {@see ServiceUnavailableException} when maintenance is active and no
+     * bypass matched and HTML rendering is requested.
+     *
+     * @return bool|ResponseInterface
+     */
     public static function check()
     {
-        // if request is from CLI
+        // CLI is always allowed except in the testing environment, where we
+        // simulate a real HTTP request to exercise the bypass logic.
         if (is_cli() && ENVIRONMENT !== 'testing') {
             return true;
         }
 
-        $config  = config('Maintenance');
-        $storage = new MaintenanceStorage($config);
+        $service = MaintenanceService::fromCurrentConfig();
 
-        // Check if maintenance mode is active
-        if (! $storage->isActive()) {
+        if (! $service->isActive()) {
             return true;
         }
 
-        try {
-            // Get maintenance data
-            $data = $storage->getData();
+        $request = Services::request();
 
-            if ($data === null) {
-                // Invalid data, log error and allow access
-                if ($config->enableLogging) {
-                    log_message('error', 'Maintenance mode data is invalid or corrupted');
-                }
-
-                return true;
-            }
-
-            // Check for secret bypass via URL parameter
-            if ($config->allowSecretBypass && ! empty($config->secretBypassKey)) {
-                $request = Services::request();
-                if ($request->getGet('maintenance_secret') === $config->secretBypassKey) {
-                    if ($config->enableLogging) {
-                        log_message('info', 'Maintenance mode bypassed via secret key from IP: ' . $request->getIPAddress());
-                    }
-
-                    return true;
-                }
-            }
-
-            // Check bypass via secret from maintenance data
-            if (isset($data->secret_bypass) && $data->secret_bypass && isset($data->secret_key)) {
-                $request = Services::request();
-                if ($request->getGet('maintenance_secret') === $data->secret_key) {
-                    if ($config->enableLogging) {
-                        log_message('info', 'Maintenance mode bypassed via data secret key from IP: ' . $request->getIPAddress());
-                    }
-
-                    return true;
-                }
-            }
-
-            // if request ip was entered in allowed_ips
-            // the app should continue running
-            $lib      = new IpUtils();
-            $clientIp = Services::request()->getIPAddress();
-
-            if (isset($data->allowed_ips) && $lib->checkIp($clientIp, $data->allowed_ips)) {
-                if ($config->enableLogging) {
-                    log_message('info', 'Maintenance mode bypassed for allowed IP: ' . $clientIp);
-                }
-
-                return true;
-            }
-
-            // if user's browser has been used the cookie pass
-            // the app should continue running
-            helper('cookie');
-            $cookieName = get_cookie($data->cookie_name ?? '');
-
-            if (! empty($data->cookie_name) && $cookieName === $data->cookie_name) {
-                if ($config->enableLogging) {
-                    log_message('info', 'Maintenance mode bypassed via cookie for IP: ' . $clientIp);
-                }
-
-                // @codeCoverageIgnoreStart
-                return true;
-                // @codeCoverageIgnoreEnd
-            }
-
-            // Log maintenance mode access attempt
-            if ($config->enableLogging) {
-                log_message('info', 'Maintenance mode blocking access from IP: ' . $clientIp);
-            }
-
-            // Set Retry-After header
-            $response = Services::response();
-            $response->setHeader('Retry-After', (string) $config->retryAfterSeconds);
-
-            throw ServiceUnavailableException::forServerDown($data->message ?? $config->defaultMessage);
-        } catch (ServiceUnavailableException $e) {
-            throw $e;
-        } catch (ExceptionInterface $e) {
-            // Log any unexpected errors
-            if ($config->enableLogging) {
-                log_message('error', 'Unexpected error in maintenance mode check: ' . $e->getMessage());
-            }
-
-            // In case of error, allow access to prevent site lockout
+        // The CLI short-circuit above guarantees we have an HTTP request here.
+        if (! $request instanceof IncomingRequest) {
             return true;
         }
+
+        $result = $service->check($request);
+
+        if ($result->allowed) {
+            self::applyAutoCookie($result);
+
+            return true;
+        }
+
+        $data = $service->getData();
+
+        // Per-window redirect short-circuits everything else.
+        if ($data !== null && $data->redirect_url !== '') {
+            return Services::response()
+                ->redirect($data->redirect_url, 'auto', 302);
+        }
+
+        // JSON content negotiation.
+        if ($service->shouldRespondJson($request)) {
+            return self::buildJsonResponse($service, $data);
+        }
+
+        // HTML 503: set the Retry-After header and let the framework render the
+        // exception template. resolveTemplate() decides which one.
+        Services::response()->setHeader('Retry-After', (string) $service->getRetryAfterSeconds());
+
+        $message = $data === null ? '' : $data->message;
+
+        throw ServiceUnavailableException::forServerDown(
+            $message !== '' ? $message : $service->getDefaultMessage(),
+        );
+    }
+
+    /**
+     * Persist the bypass cookie on the current response when the service asked
+     * for it (Sprint 3 auto-cookie). The framework will flush it with the
+     * outbound response.
+     */
+    private static function applyAutoCookie(CheckResult $result): void
+    {
+        if ($result->setCookie === null) {
+            return;
+        }
+
+        Services::response()->setCookie([
+            'name'     => $result->setCookie['name'],
+            'value'    => $result->setCookie['value'],
+            'expire'   => $result->setCookie['lifetime'],
+            'httponly' => true,
+            'samesite' => 'Lax',
+            'secure'   => self::isHttps(),
+        ]);
+    }
+
+    private static function isHttps(): bool
+    {
+        $request = Services::request();
+
+        if ($request instanceof IncomingRequest) {
+            return $request->isSecure();
+        }
+
+        return false;
+    }
+
+    private static function buildJsonResponse(
+        MaintenanceService $service,
+        ?MaintenanceData $data,
+    ): ResponseInterface {
+        $message = $data === null ? '' : $data->message;
+        if ($message === '') {
+            $message = $service->getDefaultMessage();
+        }
+
+        $body = [
+            'status'      => 503,
+            'error'       => 'Service Unavailable',
+            'message'     => $message,
+            'retry_after' => $service->getRetryAfterSeconds(),
+        ];
+
+        if ($data !== null && $data->estimated_end !== null) {
+            $body['estimated_end'] = gmdate('c', $data->estimated_end);
+        }
+
+        return Services::response()
+            ->setStatusCode(503)
+            ->setHeader('Retry-After', (string) $service->getRetryAfterSeconds())
+            ->setJSON($body);
     }
 }

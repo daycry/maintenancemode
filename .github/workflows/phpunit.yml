@@ -1,0 +1,78 @@
+name: PHPUnit
+
+on:
+  schedule:
+    - cron: "0 12 * * *"
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  phpunit:
+    name: PHPUnit · PHP ${{ matrix.php-version }}${{ matrix.composer-flags && ' (lowest)' || '' }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version: ['8.2', '8.3', '8.4']
+        composer-flags: ['']
+        include:
+          - php-version: '8.2'
+            composer-flags: '--prefer-lowest --prefer-stable'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          tools: composer
+          coverage: xdebug
+
+      - name: Get composer cache directory
+        id: composercache
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composercache.outputs.dir }}
+          key: ${{ runner.os }}-php-${{ matrix.php-version }}-composer-${{ matrix.composer-flags }}-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-php-${{ matrix.php-version }}-composer-${{ matrix.composer-flags }}-
+
+      - name: Install dependencies
+        run: composer update --ansi --no-interaction ${{ matrix.composer-flags }}
+
+      - name: Run PHPUnit
+        run: composer test
+
+      - name: Upload coverage to Coveralls
+        if: matrix.php-version == '8.2' && matrix.composer-flags == ''
+        run: |
+          composer global require --ansi php-coveralls/php-coveralls:^2.7
+          php-coveralls --coverage_clover=build/logs/clover.xml -v
+        env:
+          COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COVERALLS_PARALLEL: true
+          COVERALLS_FLAG_NAME: PHP ${{ matrix.php-version }}
+
+  coveralls-finish:
+    name: Coveralls Finish
+    runs-on: ubuntu-latest
+    needs: [phpunit]
+    if: always()
+
+    steps:
+      - name: Coveralls Finished
+        uses: coverallsapp/github-action@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          parallel-finished: true
+          fail-on-error: false

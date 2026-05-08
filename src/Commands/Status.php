@@ -4,17 +4,21 @@ namespace Daycry\Maintenance\Commands;
 
 use CodeIgniter\CLI\BaseCommand;
 use CodeIgniter\CLI\CLI;
+use Config\Services;
 use Daycry\Maintenance\Libraries\IpUtils;
 use Daycry\Maintenance\Libraries\MaintenanceStorage;
+use Throwable;
 
 class Status extends BaseCommand
 {
     protected $group       = 'Maintenance Mode';
     protected $name        = 'mm:status';
     protected $description = 'Display the maintenance mode status';
-    protected $usage       = 'mm:status';
+    protected $usage       = 'mm:status [--show-public-ip]';
     protected $arguments   = [];
-    protected $options     = [];
+    protected $options     = [
+        '-show-public-ip' => 'Try to detect the public IP via an external service (timeouts: 2s connect / 3s total)',
+    ];
 
     public function run(array $params)
     {
@@ -146,10 +150,11 @@ class Status extends BaseCommand
         $bypassMethods = [];
         $currentIP     = $this->getCurrentClientIP();
 
+        $secretParam = $this->readGetParam('maintenance_secret');
+
         // Check config secret bypass
         if ($config->allowSecretBypass && ! empty($config->secretBypassKey)) {
-            $secretParam = $_GET['maintenance_secret'] ?? '';
-            if ($secretParam === $config->secretBypassKey) {
+            if ($secretParam !== '' && hash_equals((string) $config->secretBypassKey, $secretParam)) {
                 $bypassMethods[] = '✅ Config Secret (via URL parameter)';
             } else {
                 $bypassMethods[] = "🔑 Config Secret available (add ?maintenance_secret={$config->secretBypassKey} to URL)";
@@ -158,8 +163,7 @@ class Status extends BaseCommand
 
         // Check data secret bypass
         if (isset($data->secret_bypass) && $data->secret_bypass && isset($data->secret_key)) {
-            $secretParam = $_GET['maintenance_secret'] ?? '';
-            if ($secretParam === $data->secret_key) {
+            if ($secretParam !== '' && hash_equals((string) $data->secret_key, $secretParam)) {
                 $bypassMethods[] = '✅ Data Secret (via URL parameter)';
             } else {
                 $bypassMethods[] = "🔑 Data Secret available (add ?maintenance_secret={$data->secret_key} to URL)";
@@ -178,8 +182,11 @@ class Status extends BaseCommand
 
         // Check cookie bypass
         if (isset($data->cookie_name) && ! empty($data->cookie_name)) {
-            $cookieValue = $_COOKIE[$data->cookie_name] ?? '';
-            if ($cookieValue === $data->cookie_name) {
+            $cookieName    = (string) $data->cookie_name;
+            $expectedValue = (string) ($data->cookie_value ?? '');
+            $providedValue = $this->readCookie($cookieName);
+
+            if ($expectedValue !== '' && $providedValue !== '' && hash_equals($expectedValue, $providedValue)) {
                 $bypassMethods[] = '✅ Cookie bypass (active)';
             } else {
                 $bypassMethods[] = '🍪 Cookie bypass configured (cookie not set or invalid)';
@@ -220,22 +227,22 @@ class Status extends BaseCommand
             $hasAccess    = true;
             $accessReason = 'CLI access (always allowed)';
         } else {
+            $secretParam = $this->readGetParam('maintenance_secret');
+
             // Check config secret
-            if ($config->allowSecretBypass && ! empty($config->secretBypassKey)) {
-                $secretParam = $_GET['maintenance_secret'] ?? '';
-                if ($secretParam === $config->secretBypassKey) {
-                    $hasAccess    = true;
-                    $accessReason = 'Config secret bypass';
-                }
+            if ($config->allowSecretBypass && ! empty($config->secretBypassKey)
+                && $secretParam !== ''
+                && hash_equals((string) $config->secretBypassKey, $secretParam)) {
+                $hasAccess    = true;
+                $accessReason = 'Config secret bypass';
             }
 
             // Check data secret
-            if (! $hasAccess && isset($data->secret_bypass) && $data->secret_bypass && isset($data->secret_key)) {
-                $secretParam = $_GET['maintenance_secret'] ?? '';
-                if ($secretParam === $data->secret_key) {
-                    $hasAccess    = true;
-                    $accessReason = 'Data secret bypass';
-                }
+            if (! $hasAccess && isset($data->secret_bypass) && $data->secret_bypass && isset($data->secret_key)
+                && $secretParam !== ''
+                && hash_equals((string) $data->secret_key, $secretParam)) {
+                $hasAccess    = true;
+                $accessReason = 'Data secret bypass';
             }
 
             // Check IP
@@ -249,8 +256,11 @@ class Status extends BaseCommand
 
             // Check cookie
             if (! $hasAccess && isset($data->cookie_name) && ! empty($data->cookie_name)) {
-                $cookieValue = $_COOKIE[$data->cookie_name] ?? '';
-                if ($cookieValue === $data->cookie_name) {
+                $cookieName    = (string) $data->cookie_name;
+                $expectedValue = (string) ($data->cookie_value ?? '');
+                $providedValue = $this->readCookie($cookieName);
+
+                if ($expectedValue !== '' && $providedValue !== '' && hash_equals($expectedValue, $providedValue)) {
                     $hasAccess    = true;
                     $accessReason = 'Cookie bypass';
                 }
@@ -271,23 +281,77 @@ class Status extends BaseCommand
     }
 
     /**
-     * Get current client IP (best effort for CLI)
+     * Get current client IP (best effort for CLI).
+     *
+     * Reads from $_SERVER with type validation. Avoids implicit network calls;
+     * the public-IP fallback is only attempted when explicitly enabled via the
+     * --show-public-ip flag.
      */
     private function getCurrentClientIP(): string
     {
-        // In CLI, try to get the real IP
-        if (isset($_SERVER['HTTP_CLIENT_IP'])) {
-            return $_SERVER['HTTP_CLIENT_IP'];
-        }
-        if (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-            return $_SERVER['HTTP_X_FORWARDED_FOR'];
-        }
-        if (isset($_SERVER['REMOTE_ADDR'])) {
-            return $_SERVER['REMOTE_ADDR'];
-        }
-        // Fallback: try to get external IP
-        $externalIP = @file_get_contents('https://api.ipify.org');
+        $candidates = ['HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'REMOTE_ADDR'];
 
-        return $externalIP ?: '127.0.0.1';
+        foreach ($candidates as $key) {
+            $value = $_SERVER[$key] ?? null;
+
+            if (! is_string($value) || $value === '') {
+                continue;
+            }
+
+            // X-Forwarded-For can be a comma-separated list; take the first hop.
+            $first = trim(explode(',', $value)[0]);
+            if (filter_var($first, FILTER_VALIDATE_IP)) {
+                return $first;
+            }
+        }
+
+        if (CLI::getOption('show-public-ip')) {
+            return $this->fetchPublicIp() ?? '127.0.0.1';
+        }
+
+        return '127.0.0.1';
+    }
+
+    /**
+     * Fetch the public IP from an external service with strict timeouts.
+     * Returns null on any failure (timeout, network error, invalid response).
+     */
+    private function fetchPublicIp(): ?string
+    {
+        try {
+            $client = Services::curlrequest([
+                'timeout'         => 3,
+                'connect_timeout' => 2,
+                'http_errors'     => false,
+            ]);
+            $response = $client->get('https://api.ipify.org');
+            $body     = trim($response->getBody());
+
+            return filter_var($body, FILTER_VALIDATE_IP) ? $body : null;
+        } catch (Throwable $e) {
+            log_message('warning', 'Failed to fetch public IP: ' . $e->getMessage());
+
+            return null;
+        }
+    }
+
+    /**
+     * Read a string GET parameter without trusting the superglobal type.
+     */
+    private function readGetParam(string $key): string
+    {
+        $value = $_GET[$key] ?? null;
+
+        return is_string($value) ? $value : '';
+    }
+
+    /**
+     * Read a cookie value as a string without trusting the superglobal type.
+     */
+    private function readCookie(string $key): string
+    {
+        $value = $_COOKIE[$key] ?? null;
+
+        return is_string($value) ? $value : '';
     }
 }

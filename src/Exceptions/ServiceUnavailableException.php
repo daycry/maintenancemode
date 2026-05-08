@@ -1,4 +1,5 @@
 <?php
+
 namespace Daycry\Maintenance\Exceptions;
 
 use CodeIgniter\Exceptions\HTTPExceptionInterface;

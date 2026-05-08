@@ -1,0 +1,46 @@
+parameters:
+    phpVersion: 80200
+    level: 6
+    paths:
+        - src
+    excludePaths:
+        - src/Language/*
+        - src/Views/*
+    bootstrapFiles:
+        - vendor/codeigniter4/framework/system/Test/bootstrap.php
+    scanDirectories:
+        - vendor/codeigniter4/framework/system
+    treatPhpDocTypesAsCertain: false
+    reportUnmatchedIgnoredErrors: false
+    ignoreErrors:
+        # CodeIgniter helpers exposed via Common.php — PHPStan can't fully resolve them
+        - '#Function (helper|setting|log_message|lang|esc|service|base_url|site_url|cookie|get_cookie|random_string|command|config) not found#'
+        - '#Constant (ENVIRONMENT|WRITEPATH|APPPATH|FCPATH|SYSTEMPATH|APP_NAMESPACE|PHPUNIT_COMPOSER_INSTALL) not found#'
+        # ENVIRONMENT is set at runtime; PHPStan sees a single 'development' literal
+        - '#Strict comparison using (===|!==) between .development. and .testing. will always evaluate to#'
+        # Intentional BC: $useCache is the legacy fallback when $driver is null
+        -
+            message: '#Access to deprecated property \$useCache#'
+            paths:
+                - src/Storage/StorageFactory.php
+                - src/Libraries/MaintenanceStorage.php
+                - src/Commands/Migrate.php
+        # Status.php still uses the legacy IpUtils for now (Sprint 5 will migrate it)
+        -
+            message: '#deprecated class Daycry\\Maintenance\\Libraries\\IpUtils#'
+            path: src/Commands/Status.php
+        # Pre-existing in Publish.php — out of scope for this refactor
+        -
+            message: '#Method Daycry\\Maintenance\\Commands\\Publish::#'
+            path: src/Commands/Publish.php
+        -
+            message: '#Property Daycry\\Maintenance\\Commands\\Publish::\$sourcePath#'
+            path: src/Commands/Publish.php
+        # Pre-existing static factory pattern in 503 exception
+        -
+            message: '#Unsafe usage of new static#'
+            path: src/Exceptions/ServiceUnavailableException.php
+        # Migrate.php has a pre-existing tautological ternary; out of scope
+        -
+            message: '#Ternary operator condition is always true#'
+            path: src/Commands/Migrate.php

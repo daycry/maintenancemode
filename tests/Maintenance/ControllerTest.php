@@ -429,16 +429,16 @@ final class ControllerTest extends TestCase
 
         // Test via command instead of direct controller call
         command('mm:down -cookie "test_bypass" -message "Cookie test"');
-        
+
         // Verify maintenance mode is active
-        $storage = new \Daycry\Maintenance\Libraries\MaintenanceStorage($config);
+        $storage = new MaintenanceStorage($config);
         $this->assertTrue($storage->isActive());
-        
+
         // Verify cookie data is stored
         $data = $storage->getData();
         $this->assertNotNull($data);
-        $this->assertEquals('test_bypass', $data->cookie_name);
-        
+        $this->assertSame('test_bypass', $data->cookie_name);
+
         // Clean up
         command('mm:up');
         $this->assertFalse($storage->isActive());
@@ -499,23 +499,23 @@ final class ControllerTest extends TestCase
     {
         $config = $this->createCustomConfig([
             'allowCookieBypass' => true,
-            'enableLogging' => true,
+            'enableLogging'     => true,
         ]);
         Factories::injectMock('config', 'Maintenance', $config);
 
         // Test via command with logging enabled
         command('mm:down -cookie "test_bypass_log" -message "Cookie test with logging"');
-        
+
         // Verify maintenance mode is active
-        $storage = new \Daycry\Maintenance\Libraries\MaintenanceStorage($config);
+        $storage = new MaintenanceStorage($config);
         $this->assertTrue($storage->isActive());
-        
+
         // Verify cookie data is stored with logging
         $data = $storage->getData();
         $this->assertNotNull($data);
-        $this->assertEquals('test_bypass_log', $data->cookie_name);
-        $this->assertEquals('Cookie test with logging', $data->message);
-        
+        $this->assertSame('test_bypass_log', $data->cookie_name);
+        $this->assertSame('Cookie test with logging', $data->message);
+
         // Clean up
         command('mm:up');
         $this->assertFalse($storage->isActive());
@@ -665,11 +665,11 @@ final class ControllerTest extends TestCase
             // For cache storage, create a similar test scenario
             // First activate maintenance mode normally
             command('mm:down -message "Test invalid data handling"');
-            
+
             // Verify it works normally first
-            $storage = new \Daycry\Maintenance\Libraries\MaintenanceStorage($config);
+            $storage = new MaintenanceStorage($config);
             $this->assertTrue($storage->isActive());
-            
+
             // Clean up for the actual test
             command('mm:up');
         }
@@ -842,23 +842,23 @@ final class ControllerTest extends TestCase
         // This verifies that the logging code path is executed without errors
         $result = Maintenance::check();
         $this->assertTrue($result, 'Secret bypass should work with logging enabled');
-        
+
         // Additional verification: the same test should work with logging disabled
         $configNoLog = $this->createCustomConfig([
             'allowSecretBypass' => true,
             'secretBypassKey'   => 'test-logging-secret',
             'enableLogging'     => false,
         ]);
-        
+
         Factories::injectMock('config', 'Maintenance', $configNoLog);
         $this->activateMaintenanceMode($configNoLog);
         $this->mockRequest(['maintenance_secret' => 'test-logging-secret'], '192.168.1.200');
-        
+
         $resultNoLog = Maintenance::check();
         $this->assertTrue($resultNoLog, 'Secret bypass should work with logging disabled');
-        
+
         // Both should have the same result, confirming logging doesn't break functionality
-        $this->assertEquals($result, $resultNoLog, 'Logging should not affect bypass functionality');
+        $this->assertSame($result, $resultNoLog, 'Logging should not affect bypass functionality');
     }
 
     public function testLoggingEnabledIpBypass(): void
@@ -875,7 +875,7 @@ final class ControllerTest extends TestCase
         // Verify IP bypass works with logging enabled
         $result = Maintenance::check();
         $this->assertTrue($result, 'IP bypass should work with logging enabled');
-        
+
         // Test the same with logging disabled
         $configNoLog = $this->createCustomConfig(['enableLogging' => false]);
         Factories::injectMock('config', 'Maintenance', $configNoLog);
@@ -885,11 +885,11 @@ final class ControllerTest extends TestCase
         ]);
 
         $this->mockRequest([], '192.168.1.100');
-        
+
         $resultNoLog = Maintenance::check();
         $this->assertTrue($resultNoLog, 'IP bypass should work with logging disabled');
-        
-        $this->assertEquals($result, $resultNoLog, 'Logging should not affect IP bypass functionality');
+
+        $this->assertSame($result, $resultNoLog, 'Logging should not affect IP bypass functionality');
     }
 
     public function testLoggingEnabledBlockingAccess(): void
@@ -903,7 +903,7 @@ final class ControllerTest extends TestCase
         // Verify blocking works with logging enabled
         $this->expectException(ServiceUnavailableException::class);
         $this->expectExceptionMessage('Testing maintenance mode');
-        
+
         Maintenance::check();
     }
 
@@ -922,7 +922,7 @@ final class ControllerTest extends TestCase
         // Verify data secret bypass works with logging enabled
         $result = Maintenance::check();
         $this->assertTrue($result, 'Data secret bypass should work with logging enabled');
-        
+
         // Test the same with logging disabled
         $configNoLog = $this->createCustomConfig(['enableLogging' => false]);
         Factories::injectMock('config', 'Maintenance', $configNoLog);
@@ -933,11 +933,11 @@ final class ControllerTest extends TestCase
         ]);
 
         $this->mockRequest(['maintenance_secret' => 'data-secret-test-log'], '10.0.0.50');
-        
+
         $resultNoLog = Maintenance::check();
         $this->assertTrue($resultNoLog, 'Data secret bypass should work with logging disabled');
-        
-        $this->assertEquals($result, $resultNoLog, 'Logging should not affect data secret bypass functionality');
+
+        $this->assertSame($result, $resultNoLog, 'Logging should not affect data secret bypass functionality');
     }
 
     public function testLoggingEnabledCorruptData(): void

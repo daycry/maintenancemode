@@ -4,6 +4,7 @@ namespace Daycry\Maintenance\Commands;
 
 use CodeIgniter\CLI\BaseCommand;
 use CodeIgniter\CLI\CLI;
+use CodeIgniter\Events\Events;
 use Daycry\Maintenance\Libraries\MaintenanceStorage;
 
 class Up extends BaseCommand
@@ -42,6 +43,8 @@ class Up extends BaseCommand
 
             return;
         }
+
+        Events::trigger('maintenance.deactivated');
 
         CLI::newLine(1);
         CLI::write('**** Application is now LIVE! ****', 'black', 'green');

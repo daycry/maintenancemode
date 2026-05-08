@@ -3,6 +3,8 @@
 namespace Tests\Maintenance;
 
 use CodeIgniter\Config\Factories;
+use CodeIgniter\HTTP\IncomingRequest;
+use Config\Services;
 use Daycry\Maintenance\Config\Maintenance;
 use Daycry\Maintenance\Controllers\Maintenance as MaintenanceController;
 use Daycry\Maintenance\Exceptions\ServiceUnavailableException;
@@ -108,12 +110,18 @@ final class BypassTest extends TestCase
         $storage = new MaintenanceStorage($config);
         $this->assertTrue($storage->isActive());
 
-        // Test the secret bypass via static method
-        $_GET['maintenance_secret'] = 'test-secret-key';
-        $result                     = MaintenanceController::check();
+        // Inject a fresh request mock with the bypass secret. Setting $_GET
+        // after Services::request() has been resolved (e.g. by the command()
+        // call above) does NOT propagate to the cached singleton — the
+        // controller would read empty globals. Mocking the request avoids that.
+        $request = $this->createMock(IncomingRequest::class);
+        $request->method('getGet')->willReturnCallback(static fn ($key) => $key === 'maintenance_secret' ? 'test-secret-key' : null);
+        $request->method('getIPAddress')->willReturn('203.0.113.99');
+        Services::injectMock('request', $request);
+
+        $result = MaintenanceController::check();
         $this->assertTrue($result); // Should be bypassed
 
-        unset($_GET['maintenance_secret']);
         command('mm:up');
     }
 

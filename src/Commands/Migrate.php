@@ -6,9 +6,12 @@ use CodeIgniter\CLI\BaseCommand;
 use CodeIgniter\CLI\CLI;
 use Daycry\Maintenance\Config\Maintenance;
 use Daycry\Maintenance\Libraries\MaintenanceStorage;
+use Daycry\Maintenance\Traits\ParsesCliOptions;
 
 class Migrate extends BaseCommand
 {
+    use ParsesCliOptions;
+
     protected $group       = 'Maintenance Mode';
     protected $name        = 'mm:migrate';
     protected $description = 'Migrate maintenance data from file storage to cache storage';
@@ -27,8 +30,8 @@ class Migrate extends BaseCommand
         $maintenanceConfig = new Maintenance();
         $storage           = new MaintenanceStorage($maintenanceConfig);
 
-        $force = $params['force'] ?? CLI::getOption('force') ?? false;
-        $clear = $params['clear'] ?? CLI::getOption('clear') ?? false;
+        $force = $this->option($params, 'force', false);
+        $clear = $this->option($params, 'clear', false);
 
         CLI::newLine(1);
         CLI::write('🔄 Maintenance Mode Migration Tool', 'yellow');
